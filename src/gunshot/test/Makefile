@@ -1,5 +1,9 @@
 .PHONY: all
 
+SOURCES = test.cpp
+INCLUDES = -I . -I ../../../audiofile
+TARGET = test
+
 all:
-	g++ -o test test.cpp ../utils.cpp
+	g++ $(INCLUDES) -o $(TARGET) $(SOURCES)
 
