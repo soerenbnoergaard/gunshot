@@ -1,3 +1,6 @@
 [submodule "dpf"]
 	path = dpf
 	url = https://github.com/DISTRHO/DPF
+[submodule "fftconvolver"]
+	path = fftconvolver
+	url = https://github.com/HiFi-LoFi/FFTConvolver
