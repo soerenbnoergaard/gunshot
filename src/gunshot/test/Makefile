@@ -1,9 +1,9 @@
 .PHONY: all
 
-SOURCES = test.cpp
-INCLUDES = -I . -I ../../../audiofile
+SOURCES = test.cpp $(wildcard ../../../fftconvolver/*.cpp)
+INCLUDES = -I . -I ../../../
 TARGET = test
 
 all:
-	g++ $(INCLUDES) -o $(TARGET) $(SOURCES)
+	g++ -lm $(INCLUDES) -o $(TARGET) $(SOURCES)
 

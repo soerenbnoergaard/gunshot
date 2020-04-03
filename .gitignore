@@ -1,6 +1,7 @@
 bin/
 build/
 src/gunshot/test/test
+src/gunshot/test/out.wav
 *.o
 *.so
 *.d
