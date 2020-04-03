@@ -4,6 +4,7 @@
 [submodule "fftconvolver"]
 	path = fftconvolver
 	url = https://github.com/HiFi-LoFi/FFTConvolver
+    ignore = dirty
 [submodule "audiofile"]
 	path = audiofile
 	url = https://github.com/adamstark/AudioFile

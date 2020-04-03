@@ -1,57 +1,42 @@
 #include "utils.h"
-#include <malloc.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 
-#define error(s) puts(s)
-#define WAV_HEADER_SIZE 44
-#define MAX_FILENAME_LENGTH 1024
+#include "audiofile/AudioFile.h"
 
-status_t filesize(const char *filename, int32_t *filesize)
+int init_plugin_state(plugin_state_t *state, const char *filename)
 {
-    struct stat st;
+    int n;
+    AudioFile<float> ir;
 
-    if (stat(filename, &st) == 0) {
-        *filesize = (int32_t)(st.st_size);
-        return STATUS_OK;
+    ir.load(filename);
+
+    if ((ir.getNumChannels() < 1) || (2 < ir.getNumChannels())) {
+        return 1;
     }
 
-    return STATUS_ERROR;
-}
-
-status_t load(const char *filename, float *left, float *right, uint32_t *length, uint32_t *sample_rate_Hz)
-{
-    uint8_t *all_data = NULL;
-    int32_t size;
-    FILE *f;
-
-    // Determine file size and allocate memory
-    if (filesize(filename, &size) != STATUS_OK) {
-        return STATUS_ERROR;
+    state->ir_left = NULL;
+    state->ir_left = (float *)malloc(sizeof(float)*ir.getNumSamplesPerChannel());
+    if (state->ir_left == NULL) {
+        return 1;
     }
 
-    size -= WAV_HEADER_SIZE;
-    all_data = (uint8_t *)malloc(size);
-
-    if (all_data == NULL) {
-        error("Failed to allocate memory");
-        return STATUS_ERROR;
+    state->ir_right = NULL;
+    state->ir_right = (float *)malloc(sizeof(float)*ir.getNumSamplesPerChannel());
+    if (state->ir_right == NULL) {
+        return 1;
     }
 
-    // TODO: Assert the header: 16LE, interleaved.
-    // TODO: Make sure to sample-rate convert in the sampleRateChanged() method.
-
-    // Read data
-    f = fopen(filename, "rb");
-    fseek(f, WAV_HEADER_SIZE, SEEK_SET);
-    *length = fread(left, sizeof(int16_t), size/2, f);
-    fclose(f);
-
-    if (*length != size/2) {
-        error("Failed to read the whole file");
-        return STATUS_ERROR;
+    for (n = 0; n < ir.getNumSamplesPerChannel(); n++) {
+        state->ir_left[n] = ir.samples[0][n];
+        if (ir.getNumChannels() > 1) {
+            state->ir_right[n] = ir.samples[1][n];
+        }
     }
 
-    return STATUS_OK;
+    state->ir_num_samples_per_channel = ir.getNumSamplesPerChannel();
+    state->ir_num_channels = ir.getNumChannels();
+    state->ir_sample_rate_Hz = ir.getSampleRate();
+    state->ir_bit_depth = ir.getBitDepth();
+
+    return 0;
 }
 

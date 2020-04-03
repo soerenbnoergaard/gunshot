@@ -13,7 +13,9 @@ NAME = gunshot
 # Files to build
 
 FILES_DSP = \
-	GunShot.cpp
+	GunShot.cpp \
+	utils.cpp \
+	$(wildcard ../../fftconvolver/*.cpp)
 
 # --------------------------------------------------------------
 # Do some magic
@@ -22,6 +24,7 @@ include ../../dpf/Makefile.plugins.mk
 
 # --------------------------------------------------------------
 # Set include paths
+BUILD_CXX_FLAGS += -I ../../
 
 # --------------------------------------------------------------
 # Enable all possible plugin types

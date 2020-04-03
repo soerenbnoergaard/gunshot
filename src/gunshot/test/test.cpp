@@ -2,65 +2,18 @@
 #include <stdint.h>
 #include <math.h>
 #include <string.h>
+#include "utils.h"
+
 #include "audiofile/AudioFile.h"
 #include "fftconvolver/FFTConvolver.h"
 #include "fftconvolver/Utilities.h"
-
 #define FFT_BLOCK_SIZE 64
 #define BUFFER_SIZE 128
 #define NUM_TEST_SAMPLES (BUFFER_SIZE*2400)
 
-// Plugin state
-typedef struct {
-    float *ir_left;
-    float *ir_right;
-    uint32_t ir_sample_rate_Hz;
-    uint32_t ir_num_channels;
-    uint32_t ir_num_samples_per_channel;
-    uint32_t ir_bit_depth;
-} plugin_state_t;
-
 float get_sample(uint32_t n, uint32_t sample_rate_Hz)
 {
     return 0.01*sin(1000.0 * n / sample_rate_Hz);
-}
-
-int init_plugin_state(plugin_state_t *state, const char *filename)
-{
-    int n;
-    AudioFile<float> ir;
-
-    ir.load(filename);
-
-    if ((ir.getNumChannels() < 1) || (2 < ir.getNumChannels())) {
-        return 1;
-    }
-
-    state->ir_left = NULL;
-    state->ir_left = (float *)malloc(sizeof(float)*ir.getNumSamplesPerChannel());
-    if (state->ir_left == NULL) {
-        return 1;
-    }
-
-    state->ir_right = NULL;
-    state->ir_right = (float *)malloc(sizeof(float)*ir.getNumSamplesPerChannel());
-    if (state->ir_right == NULL) {
-        return 1;
-    }
-
-    for (n = 0; n < ir.getNumSamplesPerChannel(); n++) {
-        state->ir_left[n] = ir.samples[0][n];
-        if (ir.getNumChannels() > 1) {
-            state->ir_right[n] = ir.samples[1][n];
-        }
-    }
-
-    state->ir_num_samples_per_channel = ir.getNumSamplesPerChannel();
-    state->ir_num_channels = ir.getNumChannels();
-    state->ir_sample_rate_Hz = ir.getSampleRate();
-    state->ir_bit_depth = ir.getBitDepth();
-
-    return 0;
 }
 
 int main(void)

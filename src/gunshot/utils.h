@@ -3,12 +3,16 @@
 
 #include <stdint.h>
 
-typedef enum {
-    STATUS_OK = 0,
-    STATUS_ERROR = 1
-} status_t;
+// Plugin state
+typedef struct {
+    float *ir_left;
+    float *ir_right;
+    uint32_t ir_sample_rate_Hz;
+    uint32_t ir_num_channels;
+    uint32_t ir_num_samples_per_channel;
+    uint32_t ir_bit_depth;
+} plugin_state_t;
 
-status_t filesize(const char *filename, int32_t *filesize);
-status_t load(const char *filename, float *left, float *right, uint32_t *length, uint32_t *sample_rate_Hz);
+int init_plugin_state(plugin_state_t *state, const char *filename);
 
 #endif
