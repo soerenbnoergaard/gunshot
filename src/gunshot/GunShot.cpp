@@ -16,11 +16,11 @@
 
 #include "DistrhoPlugin.hpp"
 
-START_NAMESPACE_DISTRHO
-
-// -----------------------------------------------------------------------------------------------------------
-
 #include "utils.h"
+#include "fftconvolver/FFTConvolver.h"
+#include "fftconvolver/Utilities.h"
+
+START_NAMESPACE_DISTRHO
 
 // -----------------------------------------------------------------------------------------------------------
 
@@ -32,7 +32,15 @@ class GunShotPlugin : public Plugin
 public:
     GunShotPlugin() : Plugin(0, 0, 0) // 1st argument: Number of parameters
     {
+        int err;
         sampleRateChanged(getSampleRate());
+        err = init_plugin_state(&state, "/home/soren/vcs/gunshot/src/gunshot/test/test.wav");
+        if (err) {
+            throw "Could not locate file";
+        }
+
+        convolver_left.init(state.fft_block_size, (fftconvolver::Sample *)state.ir_left, state.ir_num_samples_per_channel);
+        convolver_right.init(state.fft_block_size, (fftconvolver::Sample *)state.ir_right, state.ir_num_samples_per_channel);
     }
 
     ~GunShotPlugin() override
@@ -100,7 +108,7 @@ protected:
     int64_t getUniqueId() const override
     {
         /* soerenbnoergaard: I just made something up */
-        return d_cconst('d', 'L', 'b', 'y');
+        return d_cconst('d', 'L', 'b', '6');
     }
 
    /* --------------------------------------------------------------------------------------------------------
@@ -146,13 +154,11 @@ protected:
     {
         const float* const inL  = inputs[0];
         const float* const inR  = inputs[1];
-        float* const outL = outputs[0];
-        float* const outR = outputs[1];
+        float* outL = outputs[0];
+        float* outR = outputs[1];
 
-        for (uint32_t n = 0; n < frames; n++) {
-            outL[n] = 2*inL[n];
-            outR[n] = 2*inR[n];
-        }
+        convolver_left.process((fftconvolver::Sample *)inL, (fftconvolver::Sample *)outL, frames);
+        convolver_right.process((fftconvolver::Sample *)inR, (fftconvolver::Sample *)outR, frames);
     }
 
    /* --------------------------------------------------------------------------------------------------------
@@ -169,6 +175,10 @@ protected:
     // -------------------------------------------------------------------------------------------------------
 
 private:
+
+    plugin_state_t state;
+    fftconvolver::FFTConvolver convolver_left;
+    fftconvolver::FFTConvolver convolver_right;
 
    /**
       Set our plugin class as non-copyable and add a leak detector just in case.

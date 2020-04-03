@@ -7,7 +7,6 @@
 #include "audiofile/AudioFile.h"
 #include "fftconvolver/FFTConvolver.h"
 #include "fftconvolver/Utilities.h"
-#define FFT_BLOCK_SIZE 64
 #define BUFFER_SIZE 128
 #define NUM_TEST_SAMPLES (BUFFER_SIZE*2400)
 
@@ -32,7 +31,7 @@ int main(void)
     }
 
     // Initialize convolution kernel
-    convolver.init(FFT_BLOCK_SIZE, (fftconvolver::Sample *)state.ir_left, state.ir_num_samples_per_channel);
+    convolver.init(state.fft_block_size, (fftconvolver::Sample *)state.ir_left, state.ir_num_samples_per_channel);
 
     // Generate test data
     for (int n = 0; n < 24000; n++) {
