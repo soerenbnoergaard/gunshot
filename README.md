@@ -1,2 +1,2 @@
 # gunshot
-Convolution VST plugin
+Convolution VST plugin.
