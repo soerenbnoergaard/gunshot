@@ -11,6 +11,7 @@ Convolution VST plugin.
 
 - [DPF](https://github.com/DISTRHO/DPF) - DISTRHO Plugin Framework.
 - [FFTConvolver](https://github.com/HiFi-LoFi/FFTConvolver) - Audio convolution algorithm in C++ for real time audio processing.
+- [AudioFile](https://github.com/adamstark/AudioFile) - A simple C++ library for reading and writing audio files.
 
 ## Progress
 
@@ -18,4 +19,3 @@ Convolution VST plugin.
 - Found FFTConvolver which is the convolution library used in KlangFalter. It seems to be pure C++ and the test-program compiles just fine.
 - Looking for a way to import WAV files.
 - Figured out how to build DISTRHO's port of KlangFalter so I will try to modify this as it should build on all platforms.
-

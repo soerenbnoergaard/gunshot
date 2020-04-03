@@ -29,8 +29,6 @@ public:
     GunShotPlugin() : Plugin(0, 0, 0) // 1st argument: Number of parameters
     {
         sampleRateChanged(getSampleRate());
-        /* setParameterValue(0, chorus1enabled); */
-        /* setParameterValue(1, chorus2enabled); */
     }
 
     ~GunShotPlugin() override
