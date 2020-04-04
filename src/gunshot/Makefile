@@ -30,8 +30,8 @@ include ../../dpf/Makefile.plugins.mk
 
 # --------------------------------------------------------------
 # Set include paths
-BUILD_CXX_FLAGS += -I ../../ -I ../../fltk/ $(shell ../../fltk/fltk-config --cxxflags)
-LINK_FLAGS += $(shell ../../fltk/fltk-config --ldflags) 
+BUILD_CXX_FLAGS += -I ../../ -I ../../nativefiledialog/src/include/
+LINK_FLAGS += ../../nativefiledialog/build/lib/Release/x64/libnfd.a $(shell pkg-config --cflags --libs gtk+-3.0)
 
 # --------------------------------------------------------------
 # Enable all possible plugin types

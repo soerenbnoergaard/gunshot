@@ -8,7 +8,7 @@
 #include "fftconvolver/FFTConvolver.h"
 #include "fftconvolver/Utilities.h"
 
-#include <FL/Fl_File_Chooser.H>
+#include "nfd.h"
 
 #define BUFFER_SIZE 128
 #define NUM_TEST_SAMPLES (BUFFER_SIZE*2400)
@@ -20,17 +20,23 @@ float get_sample(uint32_t n, uint32_t sample_rate_Hz)
 
 int test_file_browser(void)
 {
-    Fl_File_Chooser chooser(".", "*.wav", Fl_File_Chooser::SINGLE, "Load impulse response");
-    chooser.show();
-    while (chooser.shown()) {
-        Fl::wait();
+    nfdchar_t *outPath = NULL;
+    nfdresult_t result = NFD_OpenDialog("wav", NULL, &outPath);
+    if (result == NFD_OKAY) {
+        puts("Success!");
+        puts(outPath);
+        free(outPath);
+        return 0;
     }
-    if (chooser.value() == NULL) {
-        printf("User hit cancel\n");
+    else if ( result == NFD_CANCEL ) {
+        puts("User pressed cancel.");
+        return 1;
+    }
+    else {
+        printf("Error: %s\n", NFD_GetError() );
         return 1;
     }
 
-    printf("File: %s\n", chooser.value());
     return 0;
 }
 

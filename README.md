@@ -16,7 +16,7 @@ Convolution VST plugin.
 - [FFTConvolver](https://github.com/HiFi-LoFi/FFTConvolver) - Audio convolution algorithm in C++ for real time audio processing.
 - [AudioFile](https://github.com/adamstark/AudioFile) - A simple C++ library for reading and writing audio files.
 - [base64.c](https://github.com/joedf/base64.c) - Base64 Library in C
-- [FLTK](https://github.com/fltk/fltk) - FLTK - Fast Light Tool Kit - <https://github.com/fltk/fltk> - cross platform GUI development
+- [nativefiledialog](https://github.com/mlabbe/nativefiledialog) -A tiny, neat C library that portably invokes native file open and save dialogs. 
 
 ## Progress log
 
@@ -27,6 +27,7 @@ Convolution VST plugin.
 - Could not work out how to modify KlangFalter - starting over instead.
 - The state can now be extracted from the plugin when using Right Click - Save VST Preset. It is, however, not saved when storing a regular Bitwig preset. The Distrho States example exports the state in both cases (the Bitwig preset can be explored with `binwalk -> dd -> unzip`). There must be some little difference between the two...
 - It seems like the state is only stored to a preset when the plugin has a UI - added a blank IO and now the preset looks good!
+- I need a file browser. FLTK does not compile with `-fPIC` so it does not work well for shared objects. I am trying out some alternatives as FLTK is a bit hard to configure - nativefiledialog works very well! (only tested on linux but should work on the other platforms as well).
 
 ## Building
 
@@ -35,9 +36,6 @@ The steps needed to build the plugin are
     git submodule init
     git submodule update
 
-    cd fltk
-    ./configure
-    make
-    cd ..
+    make -C nativefiledialog/build/gmake_linux/ CFLAGS+=-fPIC
 
     make -C src/gunshot

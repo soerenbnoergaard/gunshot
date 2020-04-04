@@ -17,8 +17,7 @@
 #include "DistrhoUI.hpp"
 #include "extra/String.hpp"
 #include "utils.h"
-
-#include <FL/Fl_File_Chooser.H>
+#include "nfd.h"
 
 START_NAMESPACE_DISTRHO
 
@@ -35,8 +34,6 @@ public:
     GunShotUI()
         : UI(512, 512)
     {
-        white_background = false;
-
         // TODO explain why this is here
         setGeometryConstraints(128, 128, true);
     }
@@ -74,10 +71,7 @@ protected:
         r.setX(0);
         r.setY(0);
 
-        if (white_background)
-            glColor3f(1.0f, 1.0f, 1.0f);
-        else
-            glColor3f(0.0f, 0.0f, 0.0f);
+        glColor3f(0.0f, 0.0f, 0.2f);
 
         r.draw();
     }
@@ -95,7 +89,6 @@ protected:
         r.setY(0);
 
         if ((r.contains(ev.pos)) && (ev.press == true)) {
-            white_background = ! white_background;
             repaint();
 
 
@@ -104,38 +97,39 @@ protected:
             // Plugin state string is generated in the UI. The plugin itself
             // will have to do all calculations based on this.
 
-            int err;
-            plugin_state_t state;
-            if (white_background) {
+            // Browse for file
+            nfdchar_t *wav_path = NULL;
+            nfdresult_t result = NFD_OpenDialog("wav", NULL, &wav_path);
 
-                Fl_File_Chooser chooser(".", "*.wav", Fl_File_Chooser::SINGLE, "Load impulse response");
-                chooser.show();
-                while (chooser.shown()) {
-                    Fl::wait();
-                }
-                if (chooser.value() == NULL) {
-                    printf("User hit cancel\n");
-                    return true;
-                }
-                printf("File: %s\n", chooser.value());
-
-                // Load file
-                err = plugin_state_init(&state, "/home/soren/vcs/gunshot/src/gunshot/test/test.wav");
+            if (result == NFD_OKAY) {
+                // Proceed
+            }
+            else if (result == NFD_CANCEL) {
+                // User pressed cancel
+                return true;
             }
             else {
-                err = plugin_state_reset(&state, false, true);
+                /* printf("Error: %s\n", NFD_GetError() ); */
+                return true;
             }
+
+            // Load impulse response filimpulse response file
+            int err;
+            plugin_state_t state;
+            err = plugin_state_init(&state, wav_path);
+            free(wav_path);
+
             if (err) {
                 throw "Error resetting state";
             }
 
+            // Convert state struct into string which is sent to the plugin
             char *str = NULL;
             uint32_t length = 0;
             err = plugin_state_serialize(&state, &str, &length);
             if (err) {
                 throw "Error serializing state";
             }
-
             setState("state", String(str));
 
             // Clean up
@@ -149,7 +143,6 @@ protected:
     // -------------------------------------------------------------------------------------------------------
 
 private:
-    bool white_background;
 
    /**
       Set our UI class as non-copyable and add a leak detector just in case.
