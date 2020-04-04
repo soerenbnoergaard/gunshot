@@ -1,6 +1,7 @@
 [submodule "dpf"]
 	path = dpf
 	url = https://github.com/DISTRHO/DPF
+    ignore = dirty
 [submodule "fftconvolver"]
 	path = fftconvolver
 	url = https://github.com/HiFi-LoFi/FFTConvolver
@@ -8,6 +9,7 @@
 [submodule "audiofile"]
 	path = audiofile
 	url = https://github.com/adamstark/AudioFile
+    ignore = dirty
 [submodule "base64"]
 	path = base64
 	url = https://github.com/joedf/base64.c

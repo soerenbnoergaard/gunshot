@@ -29,7 +29,7 @@ START_NAMESPACE_DISTRHO
 // -----------------------------------------------------------------------------------------------------------
 
 /**
-  Plugin that demonstrates the latency API in DPF.
+  Convolution plugin with impulse reponse stored as internal state.
  */
 class GunShotPlugin : public Plugin
 {
@@ -37,15 +37,16 @@ public:
     GunShotPlugin() : Plugin(NUM_PARAMETERS, NUM_PROGRAMS, NUM_STATES)
     {
         int err;
-        sampleRateChanged(getSampleRate());
-        err = plugin_state_reset(&state, false, true);
-        /* err = plugin_state_init(&state, "/home/soren/vcs/gunshot/src/gunshot/test/test.wav"); */
+        // err = plugin_state_reset(&state, false, true);
+        err = plugin_state_init(&state, "/home/soren/vcs/gunshot/src/gunshot/test/test.wav");
         if (err) {
             throw "Could not reset state";
         }
 
         convolver_left.init(state.fft_block_size, (fftconvolver::Sample *)state.ir_left, state.ir_num_samples_per_channel);
         convolver_right.init(state.fft_block_size, (fftconvolver::Sample *)state.ir_right, state.ir_num_samples_per_channel);
+
+        sampleRateChanged(getSampleRate());
     }
 
     ~GunShotPlugin() override
@@ -138,6 +139,7 @@ protected:
         int err;
         plugin_state_t default_state;
         err = plugin_state_reset(&default_state, false, true);
+        /* err = plugin_state_init(&state, "/home/soren/vcs/gunshot/src/gunshot/test/test.wav"); */
         if (err) {
             throw "Error resetting state";
         }
@@ -163,6 +165,12 @@ protected:
         free(default_state.ir_left);
         free(default_state.ir_right);
         free(default_state_str);
+
+        FILE *f = fopen("/home/soren/vcs/gunshot/src/gunshot/initState.txt", "w");
+        fprintf(f, "initState\n");
+        fclose(f);
+
+
     }
 
    /* --------------------------------------------------------------------------------------------------------
@@ -192,6 +200,29 @@ protected:
     */
     String getState(const char* key) const override
     {
+        int err;
+        String ret;
+        plugin_state_t state_copy = state;
+
+        if (std::strcmp(key, "state") == 0) {
+            char *s = NULL;
+            uint32_t length = 0;
+            err = plugin_state_serialize(&state_copy, &s, &length);
+            if (err) {
+                throw "Error serializing state";
+            }
+            ret = String(s);
+            free(s);
+        }
+        else {
+            ret = String("");
+        }
+
+        FILE *f = fopen("/home/soren/vcs/gunshot/src/gunshot/getState.txt", "w");
+        fprintf(f, "getState\n");
+        fclose(f);
+
+        return ret;
     }
 
     /**
@@ -199,6 +230,17 @@ protected:
     */
     void setState(const char* key, const char* value) override
     {
+        int err;
+        if (std::strcmp(key, "state") == 0) {
+            err = plugin_state_deserialize(&state, (char *)value, std::strlen(value));
+            if (err) {
+                throw "Error deserializing state";
+            }
+        }
+
+        FILE *f = fopen("/home/soren/vcs/gunshot/src/gunshot/setState.txt", "w");
+        fprintf(f, "setState\n");
+        fclose(f);
     }
 
    /* --------------------------------------------------------------------------------------------------------
