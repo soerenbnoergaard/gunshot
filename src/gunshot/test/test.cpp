@@ -24,7 +24,7 @@ int main(void)
 
     // Initialize plugin state
     plugin_state_t state;
-    // plugin_state_reset(&state, true);
+    // plugin_state_reset(&state, false, true);
     err = plugin_state_init(&state, "test.wav");
     if (err) {
         printf("Error reading file\n");
@@ -40,7 +40,7 @@ int main(void)
         printf("Error serializing state\n");
         return 1;
     }
-    plugin_state_reset(&state, false);
+    plugin_state_reset(&state, true, false);
 
     // De-serialize the plugin state
     err = plugin_state_deserialize(&state, state_str, state_str_length);
@@ -83,7 +83,7 @@ int main(void)
     out.save("out.wav");
     printf("OK? %d\n", ok);
 
-    plugin_state_reset(&state, false);
+    plugin_state_reset(&state, true, false);
 
     return 0;
 }

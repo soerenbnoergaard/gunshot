@@ -3,7 +3,10 @@
 #include <assert.h>
 
 #include "audiofile/AudioFile.h"
+
+extern "C" {
 #include "base64/base64.h"
+}
 
 #define FFT_BLOCK_SIZE 64
 
@@ -13,7 +16,7 @@ int plugin_state_init(plugin_state_t *state, const char *filename)
     int n;
     AudioFile<float> ir;
 
-    plugin_state_reset(state, false);
+    plugin_state_reset(state, false, false);
 
     ok = ir.load(filename);
     if (!ok) {
@@ -64,17 +67,16 @@ int plugin_state_init(plugin_state_t *state, const char *filename)
     return 0;
 }
 
-int plugin_state_reset(plugin_state_t *state, bool dirac_impulse_response)
+int plugin_state_reset(plugin_state_t *state, bool free_buffers, bool dirac_impulse_response)
 {
-    if (state->ir_left != NULL) {
+    if (free_buffers) {
         free(state->ir_left);
-        state->ir_left = NULL;
-
-    }
-    if (state->ir_right != NULL) {
         free(state->ir_right);
-        state->ir_right = NULL;
     }
+
+    state->ir_left = NULL;
+    state->ir_right = NULL;
+
     if (dirac_impulse_response) {
         state->ir_left = (float *)malloc(1);
         if (state->ir_left == NULL) {

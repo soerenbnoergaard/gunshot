@@ -15,7 +15,7 @@ typedef struct {
 } plugin_state_t;
 
 int plugin_state_init(plugin_state_t *state, const char *filename);
-int plugin_state_reset(plugin_state_t *state, bool dirac_impulse_response);
+int plugin_state_reset(plugin_state_t *state, bool free_buffers, bool dirac_impulse_response);
 int plugin_state_serialize(plugin_state_t *state, char **output, uint32_t *length);
 int plugin_state_deserialize(plugin_state_t *state, char *input, uint32_t length);
 

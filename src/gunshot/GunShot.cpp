@@ -38,7 +38,7 @@ public:
     {
         int err;
         sampleRateChanged(getSampleRate());
-        err = plugin_state_reset(&state, true);
+        err = plugin_state_reset(&state, false, true);
         /* err = plugin_state_init(&state, "/home/soren/vcs/gunshot/src/gunshot/test/test.wav"); */
         if (err) {
             throw "Could not reset state";
@@ -50,7 +50,7 @@ public:
 
     ~GunShotPlugin() override
     {
-        plugin_state_reset(&state, false);
+        plugin_state_reset(&state, true, false);
     }
 
 protected:
@@ -134,16 +134,35 @@ protected:
     */
     void initState(uint32_t index, String& stateKey, String& defaultStateValue) override
     {
-        // TODO: Serialize plugin_state_reset output as default state value.
+        // Generate String-representation of default state
+        int err;
+        plugin_state_t default_state;
+        err = plugin_state_reset(&default_state, false, true);
+        if (err) {
+            throw "Error resetting state";
+        }
+
+        char *default_state_str = NULL;
+        uint32_t default_state_str_length = 0;
+        err = plugin_state_serialize(&default_state, &default_state_str, &default_state_str_length);
+        if (err) {
+            throw "Error serializing state";
+        }
+
         switch (index) {
         case 0:
             stateKey = "state";
-            defaultStateValue = "";
+            defaultStateValue = String(default_state_str);
             break;
         default:
             throw "Index out of range";
             break;
         }
+
+        // Clean up
+        free(default_state.ir_left);
+        free(default_state.ir_right);
+        free(default_state_str);
     }
 
    /* --------------------------------------------------------------------------------------------------------
