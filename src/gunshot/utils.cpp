@@ -3,6 +3,7 @@
 #include <assert.h>
 
 #include "audiofile/AudioFile.h"
+#include "base64/base64.h"
 
 #define FFT_BLOCK_SIZE 64
 
@@ -112,21 +113,21 @@ int plugin_state_serialize(plugin_state_t *state, char **output, uint32_t *lengt
     // - Base64 encode the whole bit-string afterwards.
 
     plugin_state_t *S = state; // Short-hand for `state`
-    uint32_t raw_size; // Size of the state object [bytes]
+    uint32_t s_length; // Size of the state object [bytes]
 
-    raw_size = 0;
-    raw_size += sizeof(uint32_t); // ir_sample_rate_Hz
-    raw_size += sizeof(uint32_t); // ir_num_channels
-    raw_size += sizeof(uint32_t); // ir_num_samples_per_channel
-    raw_size += sizeof(uint32_t); // ir_bit_depth
-    raw_size += sizeof(uint32_t); // fft_block_size
-    raw_size += sizeof(float)*state->ir_num_samples_per_channel; // ir_left
-    raw_size += sizeof(float)*state->ir_num_samples_per_channel; // ir_right
+    s_length = 0;
+    s_length += sizeof(uint32_t); // ir_sample_rate_Hz
+    s_length += sizeof(uint32_t); // ir_num_channels
+    s_length += sizeof(uint32_t); // ir_num_samples_per_channel
+    s_length += sizeof(uint32_t); // ir_bit_depth
+    s_length += sizeof(uint32_t); // fft_block_size
+    s_length += sizeof(float)*state->ir_num_samples_per_channel; // ir_left
+    s_length += sizeof(float)*state->ir_num_samples_per_channel; // ir_right
 
     // Serialize the struct.
     // Multibyte objects are encoded as Little Endian.
     uint8_t *s = NULL;
-    s = (uint8_t *)malloc(raw_size);
+    s = (uint8_t *)malloc(s_length);
     if (s == NULL) {
         return 1;
     }
@@ -134,6 +135,7 @@ int plugin_state_serialize(plugin_state_t *state, char **output, uint32_t *lengt
     uint32_t i;
     uint32_t n = 0;
 
+    // Serialize fixed-length members
     s[n++] = MASK0(S->ir_sample_rate_Hz);
     s[n++] = MASK1(S->ir_sample_rate_Hz);
     s[n++] = MASK2(S->ir_sample_rate_Hz);
@@ -159,6 +161,7 @@ int plugin_state_serialize(plugin_state_t *state, char **output, uint32_t *lengt
     s[n++] = MASK2(S->fft_block_size);
     s[n++] = MASK3(S->fft_block_size);
 
+    // Serialize dynamic-length members
     for (i = 0; i < S->ir_num_samples_per_channel; i++) {
         s[n++] = MASK0(S->ir_left[i]);
         s[n++] = MASK1(S->ir_left[i]);
@@ -173,20 +176,19 @@ int plugin_state_serialize(plugin_state_t *state, char **output, uint32_t *lengt
         s[n++] = MASK3(S->ir_right[i]);
     }
 
-    *output = (char *)s;
-    *length = raw_size;
+    // Base64-encode the byte-string
+    uint32_t out_length = 0;
+    uint8_t *out = NULL;
+    out = (uint8_t *)malloc(b64e_size(s_length)+1);
+    if (out == NULL) {
+        return 1;
+    }
+    out_length = b64_encode(s, s_length, out);
+    free(s);
 
-    printf("\nSERIALIZED:\n");
-    printf("%d\n", S->ir_sample_rate_Hz);
-    printf("%d\n", S->ir_num_channels);
-    printf("%d\n", S->ir_num_samples_per_channel);
-    printf("%d\n", S->ir_bit_depth);
-    printf("%d\n", S->fft_block_size);
-    printf("%f\n", S->ir_left[0]);
-    printf("%f\n", S->ir_left[1]);
-    printf("%f\n", S->ir_right[0]);
-    printf("%f\n", S->ir_right[1]);
-
+    // Return pointers to the result
+    *output = (char *)out;
+    *length = out_length;
 
     return 0;
 }
@@ -201,27 +203,33 @@ int plugin_state_deserialize(plugin_state_t *state, char *input, uint32_t length
 
     uint32_t b;
     plugin_state_t *S = state; // Short-hand for `state`
-    uint8_t *x = (uint8_t *)input; // Short-hand for `input`
     uint32_t i;
     uint32_t n;
 
+    // Decode byte-string from base64 string
+    uint32_t x_length = 0;
+    uint8_t *x = NULL;
+    x = (uint8_t *)malloc(b64d_size(length));
+    if (x == NULL) {
+        return 1;
+    }
+    x_length = b64_decode((uint8_t *)input, length, x);
+
     n = 0;
 
+    // Decode fixes-length members
     S->ir_sample_rate_Hz = UNMASK_UINT32(x[n], x[n+1], x[n+2], x[n+3]);
     n += 4;
-
     S->ir_num_channels = UNMASK_UINT32(x[n], x[n+1], x[n+2], x[n+3]);
     n += 4;
-
     S->ir_num_samples_per_channel = UNMASK_UINT32(x[n], x[n+1], x[n+2], x[n+3]);
     n += 4;
-
     S->ir_bit_depth = UNMASK_UINT32(x[n], x[n+1], x[n+2], x[n+3]);
     n += 4;
-
     S->fft_block_size = UNMASK_UINT32(x[n], x[n+1], x[n+2], x[n+3]);
     n += 4;
 
+    // Allocate space for the dynamic-length members
     S->ir_left = NULL;
     S->ir_left = (float *)malloc(sizeof(float) * S->ir_num_samples_per_channel);
     if (S->ir_left == NULL) {
@@ -233,6 +241,7 @@ int plugin_state_deserialize(plugin_state_t *state, char *input, uint32_t length
         return 1;
     }
 
+    // Decode dynamic-length members
     for (i = 0; i < S->ir_num_samples_per_channel; i++) {
         b = UNMASK_UINT32(x[n], x[n+1], x[n+2], x[n+3]);
         n += 4;
@@ -245,16 +254,7 @@ int plugin_state_deserialize(plugin_state_t *state, char *input, uint32_t length
         S->ir_right[i] = FLOAT_FROM_UINT32(b);
     }
 
-    printf("\nDESERIALIZED:\n");
-    printf("%d\n", S->ir_sample_rate_Hz);
-    printf("%d\n", S->ir_num_channels);
-    printf("%d\n", S->ir_num_samples_per_channel);
-    printf("%d\n", S->ir_bit_depth);
-    printf("%d\n", S->fft_block_size);
-    printf("%f\n", S->ir_left[0]);
-    printf("%f\n", S->ir_left[1]);
-    printf("%f\n", S->ir_right[0]);
-    printf("%f\n", S->ir_right[1]);
-
+    // Clean up
+    free(x);
     return 0;
 }

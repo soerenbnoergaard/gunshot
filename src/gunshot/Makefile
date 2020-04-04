@@ -15,7 +15,8 @@ NAME = gunshot
 FILES_DSP = \
 	GunShot.cpp \
 	utils.cpp \
-	$(wildcard ../../fftconvolver/*.cpp)
+	$(wildcard ../../fftconvolver/*.cpp) \
+	../../base64/base64.c
 
 # --------------------------------------------------------------
 # Do some magic

@@ -8,3 +8,7 @@
 [submodule "audiofile"]
 	path = audiofile
 	url = https://github.com/adamstark/AudioFile
+[submodule "base64"]
+	path = base64
+	url = https://github.com/joedf/base64.c
+    ignore = dirty

@@ -15,6 +15,7 @@ Convolution VST plugin.
 - [DPF](https://github.com/DISTRHO/DPF) - DISTRHO Plugin Framework.
 - [FFTConvolver](https://github.com/HiFi-LoFi/FFTConvolver) - Audio convolution algorithm in C++ for real time audio processing.
 - [AudioFile](https://github.com/adamstark/AudioFile) - A simple C++ library for reading and writing audio files.
+- [base64.c](https://github.com/joedf/base64.c) - Base64 Library in C
 
 ## Progress log
 

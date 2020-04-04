@@ -1,6 +1,6 @@
 .PHONY: all clean cleanall
 
-SOURCES = test.cpp ../utils.cpp $(wildcard ../../../fftconvolver/*.cpp)
+SOURCES = test.cpp ../utils.cpp $(wildcard ../../../fftconvolver/*.cpp) ../../../base64/base64.c
 INCLUDES = -I . -I ../../../ -I..
 TARGET = test
 

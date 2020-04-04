@@ -32,7 +32,7 @@ int main(void)
     }
     state.ir_sample_rate_Hz = 48000;
 
-    // Serialize and de-serialize state
+    // Serialize the plugin state
     char *state_str = NULL;
     uint32_t state_str_length = 0;
     err = plugin_state_serialize(&state, &state_str, &state_str_length);
@@ -40,19 +40,15 @@ int main(void)
         printf("Error serializing state\n");
         return 1;
     }
-
     plugin_state_reset(&state, false);
 
+    // De-serialize the plugin state
     err = plugin_state_deserialize(&state, state_str, state_str_length);
     if (err) {
         printf("Error deserializing state\n");
         return 1;
     }
-
     free(state_str);
-
-    /* return 0; */
-
 
     // Initialize convolution kernel
     convolver.init(state.fft_block_size, (fftconvolver::Sample *)state.ir_left, state.ir_num_samples_per_channel);
