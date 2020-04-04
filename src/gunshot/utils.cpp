@@ -11,6 +11,8 @@ int init_plugin_state(plugin_state_t *state, const char *filename)
     int n;
     AudioFile<float> ir;
 
+    reset_plugin_state(state, false);
+
     ok = ir.load(filename);
     if (!ok) {
         return 1;
@@ -60,3 +62,35 @@ int init_plugin_state(plugin_state_t *state, const char *filename)
     return 0;
 }
 
+int reset_plugin_state(plugin_state_t *state, bool dirac_impulse_response)
+{
+    if (state->ir_left != NULL) {
+        free(state->ir_left);
+        state->ir_left = NULL;
+
+    }
+    if (state->ir_right != NULL) {
+        free(state->ir_right);
+        state->ir_right = NULL;
+    }
+    if (dirac_impulse_response) {
+        state->ir_left = (float *)malloc(1);
+        if (state->ir_left == NULL) {
+            return 1;
+        }
+        state->ir_right = (float *)malloc(1);
+        if (state->ir_right == NULL) {
+            return 1;
+        }
+        state->ir_left[0] = 1.0;
+        state->ir_right[0] = 1.0;
+    }
+
+    state->ir_num_samples_per_channel = 1;
+    state->ir_num_channels = 2;
+    state->ir_sample_rate_Hz = 1;
+    state->ir_bit_depth = 24;
+    state->fft_block_size = FFT_BLOCK_SIZE;
+
+    return 0;
+}

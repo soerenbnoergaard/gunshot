@@ -12,7 +12,7 @@
 
 float get_sample(uint32_t n, uint32_t sample_rate_Hz)
 {
-    return 0.01*sin(1000.0 * n / sample_rate_Hz);
+    return 0.1*sin(1000.0 * n / sample_rate_Hz);
 }
 
 int main(void)
@@ -24,11 +24,13 @@ int main(void)
 
     // Initialize plugin state
     plugin_state_t state;
+    // reset_plugin_state(&state, true);
     err = init_plugin_state(&state, "test.wav");
     if (err) {
         printf("Got error\n");
         return 1;
     }
+    state.ir_sample_rate_Hz = 48000;
 
     // Initialize convolution kernel
     convolver.init(state.fft_block_size, (fftconvolver::Sample *)state.ir_left, state.ir_num_samples_per_channel);
@@ -62,6 +64,8 @@ int main(void)
     bool ok = out.setAudioBuffer(out_buffer);
     out.save("out.wav");
     printf("OK? %d\n", ok);
+
+    reset_plugin_state(&state, false);
 
     return 0;
 }

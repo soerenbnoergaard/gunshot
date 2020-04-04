@@ -20,6 +20,10 @@
 #include "fftconvolver/FFTConvolver.h"
 #include "fftconvolver/Utilities.h"
 
+#define NUM_PARAMETERS 0
+#define NUM_PROGRAMS 0
+#define NUM_STATES 1
+
 START_NAMESPACE_DISTRHO
 
 // -----------------------------------------------------------------------------------------------------------
@@ -30,13 +34,14 @@ START_NAMESPACE_DISTRHO
 class GunShotPlugin : public Plugin
 {
 public:
-    GunShotPlugin() : Plugin(0, 0, 0) // 1st argument: Number of parameters
+    GunShotPlugin() : Plugin(NUM_PARAMETERS, NUM_PROGRAMS, NUM_STATES)
     {
         int err;
         sampleRateChanged(getSampleRate());
-        err = init_plugin_state(&state, "/home/soren/vcs/gunshot/src/gunshot/test/test.wav");
+        err = reset_plugin_state(&state, true);
+        /* err = init_plugin_state(&state, "/home/soren/vcs/gunshot/src/gunshot/test/test.wav"); */
         if (err) {
-            throw "Could not locate file";
+            throw "Could not reset state";
         }
 
         convolver_left.init(state.fft_block_size, (fftconvolver::Sample *)state.ir_left, state.ir_num_samples_per_channel);
@@ -45,6 +50,7 @@ public:
 
     ~GunShotPlugin() override
     {
+        reset_plugin_state(&state, false);
     }
 
 protected:
@@ -122,6 +128,24 @@ protected:
     {
     }
 
+    /**
+      Set the state key and default value of @a index.
+      This function will be called once, shortly after the plugin is created.
+    */
+    void initState(uint32_t index, String& stateKey, String& defaultStateValue) override
+    {
+        // TODO: Serialize reset_plugin_state output as default state value.
+        switch (index) {
+        case 0:
+            stateKey = "state";
+            defaultStateValue = "";
+            break;
+        default:
+            throw "Index out of range";
+            break;
+        }
+    }
+
    /* --------------------------------------------------------------------------------------------------------
     * Internal data */
 
@@ -140,6 +164,21 @@ protected:
       @note This function will only be called for parameter inputs.
     */
     void setParameterValue(uint32_t index, float value) override
+    {
+    }
+
+    /**
+      Get the value of an internal state.
+      The host may call this function from any non-realtime context.
+    */
+    String getState(const char* key) const override
+    {
+    }
+
+    /**
+      Change an internal state.
+    */
+    void setState(const char* key, const char* value) override
     {
     }
 
