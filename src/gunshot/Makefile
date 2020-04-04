@@ -19,7 +19,9 @@ FILES_DSP = \
 	../../base64/base64.c
 
 FILES_UI  = \
-	GunShotUI.cpp
+	GunShotUI.cpp \
+	utils.cpp \
+	../../base64/base64.c
 
 # --------------------------------------------------------------
 # Do some magic

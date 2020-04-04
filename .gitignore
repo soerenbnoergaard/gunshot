@@ -5,3 +5,4 @@ src/gunshot/test/out.wav
 *.o
 *.so
 *.d
+*.log

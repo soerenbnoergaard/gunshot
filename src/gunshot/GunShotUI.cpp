@@ -15,6 +15,8 @@
  */
 
 #include "DistrhoUI.hpp"
+#include "extra/String.hpp"
+#include "utils.h"
 
 START_NAMESPACE_DISTRHO
 
@@ -28,31 +30,11 @@ using DGL_NAMESPACE::Rectangle;
 class GunShotUI : public UI
 {
 public:
-    /**
-      Get key name from an index.
-    */
-    static const char* getStateKeyFromIndex(const uint32_t index) noexcept
-    {
-        switch (index)
-        {
-        case 0: return "top-left";
-        case 1: return "top-center";
-        case 2: return "top-right";
-        case 3: return "middle-left";
-        case 4: return "middle-center";
-        case 5: return "middle-right";
-        case 6: return "bottom-left";
-        case 7: return "bottom-center";
-        case 8: return "bottom-right";
-        }
-
-        return "unknown";
-    }
-
-    /* constructor */
     GunShotUI()
         : UI(512, 512)
     {
+        white_background = false;
+
         // TODO explain why this is here
         setGeometryConstraints(128, 128, true);
     }
@@ -84,6 +66,18 @@ protected:
     */
     void onDisplay() override
     {
+        Rectangle<int> r;
+        r.setWidth(getWidth());
+        r.setHeight(getHeight());
+        r.setX(0);
+        r.setY(0);
+
+        if (white_background)
+            glColor3f(1.0f, 1.0f, 1.0f);
+        else
+            glColor3f(0.0f, 0.0f, 0.0f);
+
+        r.draw();
     }
 
    /**
@@ -92,12 +86,55 @@ protected:
     */
     bool onMouse(const MouseEvent& ev) override
     {
+        Rectangle<int> r;
+        r.setWidth(getWidth());
+        r.setHeight(getHeight());
+        r.setX(0);
+        r.setY(0);
+
+        if ((r.contains(ev.pos)) && (ev.press == true)) {
+            white_background = ! white_background;
+            repaint();
+
+
+            // Toggle between two presets.
+            //
+            // Plugin state string is generated in the UI. The plugin itself
+            // will have to do all calculations based on this.
+
+            int err;
+            plugin_state_t state;
+            if (white_background) {
+                err = plugin_state_init(&state, "/home/soren/vcs/gunshot/src/gunshot/test/test.wav");
+            }
+            else {
+                err = plugin_state_reset(&state, false, true);
+            }
+            if (err) {
+                throw "Error resetting state";
+            }
+
+            char *str = NULL;
+            uint32_t length = 0;
+            err = plugin_state_serialize(&state, &str, &length);
+            if (err) {
+                throw "Error serializing state";
+            }
+
+            setState("state", String(str));
+
+            // Clean up
+            free(str);
+            plugin_state_reset(&state, true, false);
+        }
+
         return true;
     }
 
     // -------------------------------------------------------------------------------------------------------
 
 private:
+    bool white_background;
 
    /**
       Set our UI class as non-copyable and add a leak detector just in case.

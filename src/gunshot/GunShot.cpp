@@ -37,16 +37,12 @@ public:
     GunShotPlugin() : Plugin(NUM_PARAMETERS, NUM_PROGRAMS, NUM_STATES)
     {
         int err;
-        // err = plugin_state_reset(&state, false, true);
-        err = plugin_state_init(&state, "/home/soren/vcs/gunshot/src/gunshot/test/test.wav");
+        err = plugin_state_reset(&state, false, true);
         if (err) {
             throw "Could not reset state";
         }
-        convolver_left.reset();
-        convolver_right.reset();
-        convolver_left.init(state.fft_block_size, (fftconvolver::Sample *)state.ir_left, state.ir_num_samples_per_channel);
-        convolver_right.init(state.fft_block_size, (fftconvolver::Sample *)state.ir_right, state.ir_num_samples_per_channel);
 
+        update_state = 0;
         sampleRateChanged(getSampleRate());
     }
 
@@ -166,7 +162,7 @@ protected:
             break;
         }
 
-        FILE *f = fopen("/home/soren/vcs/gunshot/src/gunshot/initState.txt", "w");
+        FILE *f = fopen("/home/soren/vcs/gunshot/src/gunshot/initState.log", "w");
         fprintf(f, "initState\n");
         fclose(f);
 
@@ -223,7 +219,7 @@ protected:
             ret = String("");
         }
 
-        FILE *f = fopen("/home/soren/vcs/gunshot/src/gunshot/getState.txt", "w");
+        FILE *f = fopen("/home/soren/vcs/gunshot/src/gunshot/getState.log", "w");
         fprintf(f, "getState\n");
         fclose(f);
 
@@ -243,14 +239,11 @@ protected:
             if (err) {
                 throw "Error deserializing state";
             }
+            update_state = 0;
 
-            convolver_left.reset();
-            convolver_right.reset();
-            convolver_left.init(state.fft_block_size, (fftconvolver::Sample *)state.ir_left, state.ir_num_samples_per_channel);
-            convolver_right.init(state.fft_block_size, (fftconvolver::Sample *)state.ir_right, state.ir_num_samples_per_channel);
         }
 
-        FILE *f = fopen("/home/soren/vcs/gunshot/src/gunshot/setState.txt", "w");
+        FILE *f = fopen("/home/soren/vcs/gunshot/src/gunshot/setState.log", "w");
         fprintf(f, "setState\n");
         fclose(f);
     }
@@ -264,6 +257,15 @@ protected:
     */
     void run(const float** inputs, float** outputs, uint32_t frames) override
     {
+        if (update_state == 0) {
+            convolver_left.init(state.fft_block_size, (fftconvolver::Sample *)state.ir_left, state.ir_num_samples_per_channel);
+            update_state = 1;
+        }
+        else if (update_state == 1) {
+            convolver_right.init(state.fft_block_size, (fftconvolver::Sample *)state.ir_right, state.ir_num_samples_per_channel);
+            update_state = 2;
+        }
+
         const float* const inL  = inputs[0];
         const float* const inR  = inputs[1];
         float* outL = outputs[0];
@@ -289,6 +291,7 @@ protected:
 private:
 
     plugin_state_t state;
+    uint32_t update_state;
     fftconvolver::FFTConvolver convolver_left;
     fftconvolver::FFTConvolver convolver_right;
 
