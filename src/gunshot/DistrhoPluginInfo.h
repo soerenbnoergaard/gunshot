@@ -21,7 +21,7 @@
 #define DISTRHO_PLUGIN_NAME  "gunshot"
 #define DISTRHO_PLUGIN_URI   "http://github.com/soerenbnoergaard/gunshot"
 
-#define DISTRHO_PLUGIN_HAS_UI          0
+#define DISTRHO_PLUGIN_HAS_UI          1
 #define DISTRHO_PLUGIN_IS_RT_SAFE      1
 #define DISTRHO_PLUGIN_NUM_INPUTS      2
 #define DISTRHO_PLUGIN_NUM_OUTPUTS     2
@@ -29,5 +29,6 @@
 #define DISTRHO_PLUGIN_WANT_STATE      1
 #define DISTRHO_PLUGIN_WANT_FULL_STATE 1
 #define DISTRHO_PLUGIN_WANT_LATENCY    0
+#define DISTRHO_UI_USER_RESIZABLE      1
 
 #endif // DISTRHO_PLUGIN_INFO_H_INCLUDED

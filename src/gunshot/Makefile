@@ -18,6 +18,9 @@ FILES_DSP = \
 	$(wildcard ../../fftconvolver/*.cpp) \
 	../../base64/base64.c
 
+FILES_UI  = \
+	GunShotUI.cpp
+
 # --------------------------------------------------------------
 # Do some magic
 
