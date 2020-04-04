@@ -6,12 +6,14 @@ CXX_SOURCES = test.cpp ../utils.cpp $(wildcard ../../../fftconvolver/*.cpp)
 
 C_OBJECTS = $(C_SOURCES:.c=.o)
 CXX_OBJECTS = $(CXX_SOURCES:.cpp=.o)
+LIBS = ../../../fltk/lib/libfltk.a $(shell ../../../fltk/fltk-config --ldflags) 
+
 
 TARGET = test
-INCLUDES = -I . -I ../../../ -I..
+INCLUDES = -I . -I .. -I ../../../ -I ../../../fltk/
 
 all: $(C_OBJECTS) $(CXX_OBJECTS)
-	g++ -lm $(INCLUDES) $(C_OBJECTS) $(CXX_OBJECTS) -o $(TARGET)
+	g++ -lm $(INCLUDES) $(C_OBJECTS) $(CXX_OBJECTS) $(LIBS) -o $(TARGET)
 
 clean:
 	rm -f $(C_OBJECTS) $(CXX_OBJECTS)

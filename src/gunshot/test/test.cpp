@@ -7,6 +7,9 @@
 #include "audiofile/AudioFile.h"
 #include "fftconvolver/FFTConvolver.h"
 #include "fftconvolver/Utilities.h"
+
+#include <FL/Fl_File_Chooser.H>
+
 #define BUFFER_SIZE 128
 #define NUM_TEST_SAMPLES (BUFFER_SIZE*2400)
 
@@ -15,8 +18,27 @@ float get_sample(uint32_t n, uint32_t sample_rate_Hz)
     return 0.1*sin(1000.0 * n / sample_rate_Hz);
 }
 
+int test_file_browser(void)
+{
+    Fl_File_Chooser chooser(".", "*.wav", Fl_File_Chooser::SINGLE, "Load impulse response");
+    chooser.show();
+    while (chooser.shown()) {
+        Fl::wait();
+    }
+    if (chooser.value() == NULL) {
+        printf("User hit cancel\n");
+        return 1;
+    }
+
+    printf("File: %s\n", chooser.value());
+    return 0;
+}
+
 int main(void)
 {
+    test_file_browser();
+    return 0;
+
     int err;
     fftconvolver::FFTConvolver convolver;
     float y[NUM_TEST_SAMPLES];
