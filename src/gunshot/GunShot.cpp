@@ -38,8 +38,8 @@ public:
     {
         int err;
         sampleRateChanged(getSampleRate());
-        err = reset_plugin_state(&state, true);
-        /* err = init_plugin_state(&state, "/home/soren/vcs/gunshot/src/gunshot/test/test.wav"); */
+        err = plugin_state_reset(&state, true);
+        /* err = plugin_state_init(&state, "/home/soren/vcs/gunshot/src/gunshot/test/test.wav"); */
         if (err) {
             throw "Could not reset state";
         }
@@ -50,7 +50,7 @@ public:
 
     ~GunShotPlugin() override
     {
-        reset_plugin_state(&state, false);
+        plugin_state_reset(&state, false);
     }
 
 protected:
@@ -134,7 +134,7 @@ protected:
     */
     void initState(uint32_t index, String& stateKey, String& defaultStateValue) override
     {
-        // TODO: Serialize reset_plugin_state output as default state value.
+        // TODO: Serialize plugin_state_reset output as default state value.
         switch (index) {
         case 0:
             stateKey = "state";

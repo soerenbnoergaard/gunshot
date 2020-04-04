@@ -24,13 +24,35 @@ int main(void)
 
     // Initialize plugin state
     plugin_state_t state;
-    // reset_plugin_state(&state, true);
-    err = init_plugin_state(&state, "test.wav");
+    // plugin_state_reset(&state, true);
+    err = plugin_state_init(&state, "test.wav");
     if (err) {
-        printf("Got error\n");
+        printf("Error reading file\n");
         return 1;
     }
     state.ir_sample_rate_Hz = 48000;
+
+    // Serialize and de-serialize state
+    char *state_str = NULL;
+    uint32_t state_str_length = 0;
+    err = plugin_state_serialize(&state, &state_str, &state_str_length);
+    if (err) {
+        printf("Error serializing state\n");
+        return 1;
+    }
+
+    plugin_state_reset(&state, false);
+
+    err = plugin_state_deserialize(&state, state_str, state_str_length);
+    if (err) {
+        printf("Error deserializing state\n");
+        return 1;
+    }
+
+    free(state_str);
+
+    /* return 0; */
+
 
     // Initialize convolution kernel
     convolver.init(state.fft_block_size, (fftconvolver::Sample *)state.ir_left, state.ir_num_samples_per_channel);
@@ -65,7 +87,7 @@ int main(void)
     out.save("out.wav");
     printf("OK? %d\n", ok);
 
-    reset_plugin_state(&state, false);
+    plugin_state_reset(&state, false);
 
     return 0;
 }
