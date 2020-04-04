@@ -42,6 +42,9 @@ public:
             throw "Could not reset state";
         }
 
+#ifdef GUNSHOT_LOG_ENABLE
+        log_init();
+#endif
         update_state = 0;
         sampleRateChanged(getSampleRate());
     }

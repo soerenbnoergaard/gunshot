@@ -1,6 +1,7 @@
 #include "utils.h"
 #include <math.h>
 #include <assert.h>
+#include <string.h>
 
 #include "audiofile/AudioFile.h"
 
@@ -23,6 +24,23 @@ int plugin_state_init(plugin_state_t *state, const char *filename)
         return 1;
     }
 
+#ifdef GUNSHOT_LOG_ENABLE
+    char line[1024];
+    sprintf(line, "Filename: %s\n", filename);
+    log_write(line);
+    sprintf(line, "Num channels: %d\n", ir.getNumChannels());
+    log_write(line);
+    sprintf(line, "Num samples per channel: %d\n", ir.getNumSamplesPerChannel());
+    log_write(line);
+    sprintf(line, "Sample rate: %d\n", ir.getSampleRate());
+    log_write(line);
+    sprintf(line, "Bit depth: %d\n", ir.getBitDepth());
+    log_write(line);
+    sprintf(line, "Length in seconds: %f\n", ir.getLengthInSeconds());
+    log_write(line);
+    sprintf(line, "\n");
+#endif
+
     if ((ir.getNumChannels() < 1) || (2 < ir.getNumChannels())) {
         return 1;
     }
@@ -44,7 +62,8 @@ int plugin_state_init(plugin_state_t *state, const char *filename)
     float sum_sq_right = 0.0;
     for (n = 0; n < ir.getNumSamplesPerChannel(); n++) {
         float L = ir.samples[0][n];
-        float R = ir.samples[1][n];
+        float R = (ir.getNumChannels() > 1) ? ir.samples[1][n] : L;
+
         sum_sq_left += L*L;
         sum_sq_right += R*R;
     }
@@ -53,9 +72,7 @@ int plugin_state_init(plugin_state_t *state, const char *filename)
 
     for (n = 0; n < ir.getNumSamplesPerChannel(); n++) {
         state->ir_left[n] = scale * ir.samples[0][n];
-        if (ir.getNumChannels() > 1) {
-            state->ir_right[n] =  scale * ir.samples[1][n];
-        }
+        state->ir_right[n] =  (ir.getNumChannels() > 1) ? (scale * ir.samples[1][n]) : (scale * ir.samples[0][n]);
     }
 
     state->ir_num_samples_per_channel = ir.getNumSamplesPerChannel();
@@ -259,4 +276,21 @@ int plugin_state_deserialize(plugin_state_t *state, char *input, uint32_t length
     // Clean up
     free(x);
     return 0;
+}
+
+int log_init(void)
+{
+#ifdef GUNSHOT_LOG_ENABLE
+    FILE *f = fopen(GUNSHOT_LOG_FILE, "w");
+    fclose(f);
+#endif
+}
+
+int log_write(const char *s)
+{
+#ifdef GUNSHOT_LOG_ENABLE
+    FILE *f = fopen(GUNSHOT_LOG_FILE, "a");
+    fwrite(s, sizeof(char), strlen(s), f);
+    fclose(f);
+#endif
 }
