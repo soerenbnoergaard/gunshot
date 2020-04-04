@@ -30,7 +30,8 @@ include ../../dpf/Makefile.plugins.mk
 
 # --------------------------------------------------------------
 # Set include paths
-BUILD_CXX_FLAGS += -I ../../
+BUILD_CXX_FLAGS += -I ../../ -I ../../fltk/ $(shell ../../fltk/fltk-config --cxxflags)
+LINK_FLAGS += $(shell ../../fltk/fltk-config --ldflags) 
 
 # --------------------------------------------------------------
 # Enable all possible plugin types
@@ -47,3 +48,4 @@ all: $(TARGETS)
 	cp ../../bin/gunshot-vst.so ~/.vst/soerenbnoergaard
 
 # --------------------------------------------------------------
+

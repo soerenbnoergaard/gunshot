@@ -18,6 +18,8 @@
 #include "extra/String.hpp"
 #include "utils.h"
 
+#include <FL/Fl_File_Chooser.H>
+
 START_NAMESPACE_DISTRHO
 
 /**
@@ -105,6 +107,19 @@ protected:
             int err;
             plugin_state_t state;
             if (white_background) {
+
+                Fl_File_Chooser chooser(".", "*.wav", Fl_File_Chooser::SINGLE, "Load impulse response");
+                chooser.show();
+                while (chooser.shown()) {
+                    Fl::wait();
+                }
+                if (chooser.value() == NULL) {
+                    printf("User hit cancel\n");
+                    return true;
+                }
+                printf("File: %s\n", chooser.value());
+
+                // Load file
                 err = plugin_state_init(&state, "/home/soren/vcs/gunshot/src/gunshot/test/test.wav");
             }
             else {
