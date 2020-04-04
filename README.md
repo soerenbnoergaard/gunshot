@@ -25,3 +25,4 @@ Convolution VST plugin.
 - Figured out how to build DISTRHO's port of KlangFalter so I will try to modify this as it should build on all platforms.
 - Could not work out how to modify KlangFalter - starting over instead.
 - The state can now be extracted from the plugin when using Right Click - Save VST Preset. It is, however, not saved when storing a regular Bitwig preset. The Distrho States example exports the state in both cases (the Bitwig preset can be explored with `binwalk -> dd -> unzip`). There must be some little difference between the two...
+- It seems like the state is only stored to a preset when the plugin has a UI.
