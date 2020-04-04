@@ -42,7 +42,8 @@ public:
         if (err) {
             throw "Could not reset state";
         }
-
+        convolver_left.reset();
+        convolver_right.reset();
         convolver_left.init(state.fft_block_size, (fftconvolver::Sample *)state.ir_left, state.ir_num_samples_per_channel);
         convolver_right.init(state.fft_block_size, (fftconvolver::Sample *)state.ir_right, state.ir_num_samples_per_channel);
 
@@ -52,6 +53,8 @@ public:
     ~GunShotPlugin() override
     {
         plugin_state_reset(&state, true, false);
+        convolver_left.reset();
+        convolver_right.reset();
     }
 
 protected:
@@ -133,20 +136,22 @@ protected:
       Set the state key and default value of @a index.
       This function will be called once, shortly after the plugin is created.
     */
+    // SBN: I think the only purpose of this functions is to provide default
+    // values for each state variable.
     void initState(uint32_t index, String& stateKey, String& defaultStateValue) override
     {
         // Generate String-representation of default state
         int err;
         plugin_state_t default_state;
         err = plugin_state_reset(&default_state, false, true);
-        /* err = plugin_state_init(&state, "/home/soren/vcs/gunshot/src/gunshot/test/test.wav"); */
+        /* err = plugin_state_init(&default_state, "/home/soren/vcs/gunshot/src/gunshot/test/test.wav"); */
         if (err) {
             throw "Error resetting state";
         }
 
-        char *default_state_str = NULL;
-        uint32_t default_state_str_length = 0;
-        err = plugin_state_serialize(&default_state, &default_state_str, &default_state_str_length);
+        char *str = NULL;
+        uint32_t length = 0;
+        err = plugin_state_serialize(&default_state, &str, &length);
         if (err) {
             throw "Error serializing state";
         }
@@ -154,23 +159,19 @@ protected:
         switch (index) {
         case 0:
             stateKey = "state";
-            defaultStateValue = String(default_state_str);
+            defaultStateValue = String(str);
             break;
         default:
             throw "Index out of range";
             break;
         }
 
-        // Clean up
-        free(default_state.ir_left);
-        free(default_state.ir_right);
-        free(default_state_str);
-
         FILE *f = fopen("/home/soren/vcs/gunshot/src/gunshot/initState.txt", "w");
         fprintf(f, "initState\n");
         fclose(f);
 
-
+        // Clean up
+        free(str);
     }
 
    /* --------------------------------------------------------------------------------------------------------
@@ -198,6 +199,10 @@ protected:
       Get the value of an internal state.
       The host may call this function from any non-realtime context.
     */
+    // SBN: I believe this function is called from the host to obtain state
+    // variables that it can store. In Bitwig, this is callled when running
+    // "Save VST Preset..." from the right click menu. It is not called when a
+    // preset is store internally in Bitwig.
     String getState(const char* key) const override
     {
         int err;
@@ -228,6 +233,8 @@ protected:
     /**
       Change an internal state.
     */
+    // SBN: I cannot see this function being called. It may be called only from
+    // the User Interface?
     void setState(const char* key, const char* value) override
     {
         int err;
@@ -236,6 +243,11 @@ protected:
             if (err) {
                 throw "Error deserializing state";
             }
+
+            convolver_left.reset();
+            convolver_right.reset();
+            convolver_left.init(state.fft_block_size, (fftconvolver::Sample *)state.ir_left, state.ir_num_samples_per_channel);
+            convolver_right.init(state.fft_block_size, (fftconvolver::Sample *)state.ir_right, state.ir_num_samples_per_channel);
         }
 
         FILE *f = fopen("/home/soren/vcs/gunshot/src/gunshot/setState.txt", "w");
