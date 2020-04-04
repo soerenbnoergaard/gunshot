@@ -14,3 +14,7 @@
 	path = base64
 	url = https://github.com/joedf/base64.c
     ignore = dirty
+[submodule "fltk"]
+	path = fltk
+	url = https://github.com/fltk/fltk
+    ignore = dirty
