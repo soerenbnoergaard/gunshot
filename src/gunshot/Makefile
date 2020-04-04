@@ -38,5 +38,6 @@ TARGETS += lv2_dsp
 TARGETS += vst
 
 all: $(TARGETS)
+	cp ../../bin/gunshot-vst.so ~/.vst/soerenbnoergaard
 
 # --------------------------------------------------------------

@@ -6,6 +6,7 @@ Convolution VST plugin.
 
 - Cross platform (Windows, OSX, and Linux).
 - Impulse response must be stored with the plugin state (not just a path to a file as this may move independently of the project).
+- Automatic sample-rate conversion of the impulse response recording.
 
 ## Libraries
 

@@ -1,4 +1,5 @@
 #include "utils.h"
+#include <math.h>
 
 #include "audiofile/AudioFile.h"
 
@@ -32,28 +33,16 @@ int init_plugin_state(plugin_state_t *state, const char *filename)
     }
 
     // Calculate scale factor
-    float sum_left = 0.0;
-    float sum_right = 0.0;
-    float max_left = 0.0;
-    float max_right = 0.0;
+    float sum_sq_left = 0.0;
+    float sum_sq_right = 0.0;
     for (n = 0; n < ir.getNumSamplesPerChannel(); n++) {
         float L = ir.samples[0][n];
         float R = ir.samples[1][n];
-        float absL = L < 0 ? -L : L;
-        float absR = R < 0 ? -R : R;
-
-        sum_left  += L;
-        sum_right += R;
-        if (max_left < absL) {
-            max_left = absL;
-        }
-        if (max_right < absR) {
-            max_right = absR;
-        }
-        
+        sum_sq_left += L*L;
+        sum_sq_right += R*R;
     }
-    // TODO: Figure out a proper way to scale an impulse response to unity gain
-    float scale = sum_left < sum_right ? 1.0/max_right/FFT_BLOCK_SIZE: 1.0/max_left/FFT_BLOCK_SIZE;
+    float sum_sq_max = sum_sq_left > sum_sq_right ? sum_sq_left : sum_sq_right;
+    float scale = 1.0/sqrt(sum_sq_max);
 
     for (n = 0; n < ir.getNumSamplesPerChannel(); n++) {
         state->ir_left[n] = scale * ir.samples[0][n];
