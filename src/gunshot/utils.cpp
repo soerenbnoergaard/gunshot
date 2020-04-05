@@ -10,7 +10,7 @@ extern "C" {
 
 #define FFT_BLOCK_SIZE 1024
 
-#ifdef GUNSHOT_LOG_ENABLE
+#ifdef GUNSHOT_LOG_FILE
 static char line[1024];
 #endif
 
@@ -27,13 +27,11 @@ int plugin_state_init(plugin_state_t *state, const char *filename)
 
     ok = ir.load(filename);
     if (!ok) {
-#ifdef GUNSHOT_LOG_ENABLE
         log_write("Error loading impulse response from file");
-#endif
         return 1;
     }
 
-#ifdef GUNSHOT_LOG_ENABLE
+#ifdef GUNSHOT_LOG_FILE
     sprintf(line, "Filename: %s", filename);
     log_write(line);
     sprintf(line, "Num channels: %d", ir.getNumChannels());
@@ -287,7 +285,7 @@ int plugin_state_deserialize(plugin_state_t *state, char *input, uint32_t length
 
 int log_init(void)
 {
-#ifdef GUNSHOT_LOG_ENABLE
+#ifdef GUNSHOT_LOG_FILE
     FILE *f = fopen(GUNSHOT_LOG_FILE, "w");
     fclose(f);
 #endif
@@ -295,7 +293,7 @@ int log_init(void)
 
 int log_write(const char *s)
 {
-#ifdef GUNSHOT_LOG_ENABLE
+#ifdef GUNSHOT_LOG_FILE
     FILE *f = fopen(GUNSHOT_LOG_FILE, "a");
     /* fwrite(s, sizeof(char), strlen(s), f); */
     /* fwrite("\n", sizeof(char), 1, f); */

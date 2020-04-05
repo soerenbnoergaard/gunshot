@@ -43,7 +43,7 @@ public:
             throw "Could not reset state";
         }
 
-#ifdef GUNSHOT_LOG_ENABLE
+#ifdef GUNSHOT_LOG_FILE
         log_init();
 #endif
         update_state = 0;
@@ -144,7 +144,6 @@ protected:
         int err;
         plugin_state_t default_state;
         err = plugin_state_reset(&default_state, false, true);
-        /* err = plugin_state_init(&default_state, "/home/soren/vcs/gunshot/src/gunshot/test/test.wav"); */
         if (err) {
             throw "Error resetting state";
         }
@@ -165,10 +164,6 @@ protected:
             throw "Index out of range";
             break;
         }
-
-        FILE *f = fopen("/home/soren/vcs/gunshot/src/gunshot/initState.log", "w");
-        fprintf(f, "initState\n");
-        fclose(f);
 
         // Clean up
         free(str);
@@ -223,10 +218,6 @@ protected:
             ret = String("");
         }
 
-        FILE *f = fopen("/home/soren/vcs/gunshot/src/gunshot/getState.log", "w");
-        fprintf(f, "getState\n");
-        fclose(f);
-
         return ret;
     }
 
@@ -246,10 +237,6 @@ protected:
             update_state = 0;
 
         }
-
-        FILE *f = fopen("/home/soren/vcs/gunshot/src/gunshot/setState.log", "w");
-        fprintf(f, "setState\n");
-        fclose(f);
     }
 
    /* --------------------------------------------------------------------------------------------------------

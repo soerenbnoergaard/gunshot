@@ -42,7 +42,6 @@ class GunShotUI : public UI
 public:
     GunShotUI() : UI(512, 128)
     {
-        /* fFont = createFontFromFile("sans", "/home/soren/vcs/gunshot/dejavu-fonts/DejaVuSans.ttf"); */
         fFont = createFontFromMemory("sans", font_memory, font_memory_size, false);
         error_message = "";
     }
