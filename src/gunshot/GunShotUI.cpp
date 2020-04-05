@@ -15,6 +15,7 @@
  */
 
 #include "DistrhoUI.hpp"
+#include "StandaloneWindow.hpp"
 #include "extra/String.hpp"
 #include "utils.h"
 #include "nfd.h"
@@ -32,6 +33,43 @@ START_NAMESPACE_DISTRHO
   We need the rectangle class from DGL.
  */
 using DGL_NAMESPACE::Rectangle;
+
+
+// -----------------------------------------------------------------------------------------------------------
+
+class MyFileBrowser : public StandaloneWindow
+{
+public:
+    char selected_file[1024];
+    bool file_selected;
+
+    MyFileBrowser() : StandaloneWindow()
+    {
+        // selected_file;
+        file_selected = false;
+    }
+
+    void browse()
+    {
+        FileBrowserOptions o;
+        openFileBrowser(o);
+    }
+
+protected:
+    void fileBrowserSelected(const char* filename) override
+    {
+        if (filename != nullptr) {
+            std::strcpy(selected_file, filename);
+            file_selected = true;
+        }
+        else {
+            file_selected = false;
+        }
+        close();
+    }
+
+};
+
 
 // -----------------------------------------------------------------------------------------------------------
 
@@ -118,26 +156,41 @@ protected:
             // will have to do all calculations based on this.
 
             // Browse for file
-            nfdchar_t *ir_path = NULL;
-            nfdresult_t result = NFD_OpenDialog("wav,aif,aiff", NULL, &ir_path);
+            file_browser.browse();
+            file_browser.exec();
 
-            if (result == NFD_OKAY) {
-                // Proceed
-            }
-            else if (result == NFD_CANCEL) {
-                // User pressed cancel
+            char *ir_path = file_browser.selected_file;
+            if (!file_browser.file_selected) {
+                log_write("No file selected\n");
                 return true;
             }
             else {
-                /* printf("Error: %s\n", NFD_GetError() ); */
-                return true;
+                log_write(ir_path);
+                log_write("\n");
             }
+            /* return true; */
+
+            /* // OLD FILE BROWSER BEGIN */
+            /* nfdchar_t *ir_path = NULL; */
+            /* nfdresult_t result = NFD_OpenDialog("wav,aif,aiff", NULL, &ir_path); */
+            /*  */
+            /* if (result == NFD_OKAY) { */
+            /*     // Proceed */
+            /* } */
+            /* else if (result == NFD_CANCEL) { */
+            /*     // User pressed cancel */
+            /*     return true; */
+            /* } */
+            /* else { */
+            /*     #<{(| printf("Error: %s\n", NFD_GetError() ); |)}># */
+            /*     return true; */
+            /* } */
+            /* // OLD FILE BROWSER END */
 
             // Load impulse response filimpulse response file
             int err;
             plugin_state_t state;
             err = plugin_state_init(&state, ir_path);
-            free(ir_path);
 
             if (err) {
                 error_message = "ERROR: Supported formats: Uncompressed WAV and AIFF";
@@ -169,6 +222,7 @@ protected:
 private:
     FontId fFont;
     String error_message;
+    MyFileBrowser file_browser;
 
    /**
       Set our UI class as non-copyable and add a leak detector just in case.
