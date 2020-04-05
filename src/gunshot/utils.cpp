@@ -8,7 +8,7 @@ extern "C" {
 #include "base64/base64.h"
 }
 
-#define FFT_BLOCK_SIZE 64
+#define FFT_BLOCK_SIZE 1024
 
 #ifdef GUNSHOT_LOG_ENABLE
 static char line[1024];

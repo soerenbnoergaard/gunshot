@@ -17,7 +17,8 @@
 #include "DistrhoPlugin.hpp"
 
 #include "utils.h"
-#include "fftconvolver/FFTConvolver.h"
+/* #include "fftconvolver/FFTConvolver.h" */
+#include "fftconvolver/TwoStageFFTConvolver.h"
 #include "fftconvolver/Utilities.h"
 
 #define NUM_PARAMETERS 0
@@ -260,22 +261,32 @@ protected:
     */
     void run(const float** inputs, float** outputs, uint32_t frames) override
     {
-        if (update_state == 0) {
-            convolver_left.init(state.fft_block_size, (fftconvolver::Sample *)state.ir_left, state.ir_num_samples_per_channel);
-            update_state = 1;
-        }
-        else if (update_state == 1) {
-            convolver_right.init(state.fft_block_size, (fftconvolver::Sample *)state.ir_right, state.ir_num_samples_per_channel);
-            update_state = 2;
-        }
-
         const float* const inL  = inputs[0];
         const float* const inR  = inputs[1];
         float* outL = outputs[0];
         float* outR = outputs[1];
 
-        convolver_left.process((fftconvolver::Sample *)inL, (fftconvolver::Sample *)outL, frames);
-        convolver_right.process((fftconvolver::Sample *)inR, (fftconvolver::Sample *)outR, frames);
+        switch (update_state) {
+        case 0:
+            // convolver_left.init(state.fft_block_size, 8*state.fft_block_size, (fftconvolver::Sample *)state.ir_left, state.ir_num_samples_per_channel);
+            convolver_left.init(state.fft_block_size, (fftconvolver::Sample *)state.ir_left, state.ir_num_samples_per_channel);
+            update_state = 1;
+            break;
+        case 1:
+            // convolver_right.init(state.fft_block_size, 8*state.fft_block_size, (fftconvolver::Sample *)state.ir_right, state.ir_num_samples_per_channel);
+            convolver_right.init(state.fft_block_size, (fftconvolver::Sample *)state.ir_right, state.ir_num_samples_per_channel);
+            update_state = 2;
+            break;
+        default:
+            convolver_left.process((fftconvolver::Sample *)inL, (fftconvolver::Sample *)outL, frames);
+            convolver_right.process((fftconvolver::Sample *)inR, (fftconvolver::Sample *)outR, frames);
+            /* for (int n = 0; n < frames; n++) { */
+            /*     outL[n] = inL[n]; */
+            /*     outR[n] = inR[n]; */
+            /* } */
+            break;
+        }
+
     }
 
    /* --------------------------------------------------------------------------------------------------------
@@ -297,6 +308,8 @@ private:
     uint32_t update_state;
     fftconvolver::FFTConvolver convolver_left;
     fftconvolver::FFTConvolver convolver_right;
+    // fftconvolver::TwoStageFFTConvolver convolver_left;
+    // fftconvolver::TwoStageFFTConvolver convolver_right;
 
    /**
       Set our plugin class as non-copyable and add a leak detector just in case.
