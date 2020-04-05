@@ -32,9 +32,7 @@ include ../../dpf/Makefile.plugins.mk
 
 # --------------------------------------------------------------
 # Set include paths
-BUILD_CXX_FLAGS += -I ../../ -I ../../nativefiledialog/src/include/
-LINK_FLAGS += ../../nativefiledialog/build/lib/Release/x64/libnfd.a
-LINK_FLAGS += $(shell pkg-config --cflags --libs gtk+-3.0)
+BUILD_CXX_FLAGS += -I ../../
 LINK_FLAGS += $(FONT_OBJ)
 
 # --------------------------------------------------------------

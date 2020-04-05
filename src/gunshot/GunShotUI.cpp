@@ -18,7 +18,6 @@
 #include "StandaloneWindow.hpp"
 #include "extra/String.hpp"
 #include "utils.h"
-#include "nfd.h"
 
 #define MAX_PATH_LENGTH 2048
 

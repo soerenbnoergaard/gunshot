@@ -8,8 +8,6 @@
 #include "fftconvolver/FFTConvolver.h"
 #include "fftconvolver/Utilities.h"
 
-#include "nfd.h"
-
 #define BUFFER_SIZE 128
 #define NUM_TEST_SAMPLES (BUFFER_SIZE*2400)
 
@@ -18,33 +16,8 @@ float get_sample(uint32_t n, uint32_t sample_rate_Hz)
     return 0.1*sin(1000.0 * n / sample_rate_Hz);
 }
 
-int test_file_browser(void)
-{
-    nfdchar_t *outPath = NULL;
-    nfdresult_t result = NFD_OpenDialog("wav", NULL, &outPath);
-    if (result == NFD_OKAY) {
-        puts("Success!");
-        puts(outPath);
-        free(outPath);
-        return 0;
-    }
-    else if ( result == NFD_CANCEL ) {
-        puts("User pressed cancel.");
-        return 1;
-    }
-    else {
-        printf("Error: %s\n", NFD_GetError() );
-        return 1;
-    }
-
-    return 0;
-}
-
 int main(void)
 {
-    test_file_browser();
-    return 0;
-
     int err;
     fftconvolver::FFTConvolver convolver;
     float y[NUM_TEST_SAMPLES];

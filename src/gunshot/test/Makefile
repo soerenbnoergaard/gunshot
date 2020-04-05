@@ -2,15 +2,14 @@
 
 
 C_SOURCES =  ../../../base64/base64.c
-CXX_SOURCES = test.cpp ../utils.cpp
+CXX_SOURCES = test.cpp ../utils.cpp $(wildcard ../../../fftconvolver/*.cpp)
 
 C_OBJECTS = $(C_SOURCES:.c=.o)
 CXX_OBJECTS = $(CXX_SOURCES:.cpp=.o)
 
-LIBS = ../../../nativefiledialog/build/lib/Release/x64/libnfd.a $(shell pkg-config --cflags --libs gtk+-3.0)
-
+LIBS =
 TARGET = test
-INCLUDES = -I . -I .. -I ../../../ -I ../../../nativefiledialog/src/include/
+INCLUDES = -I . -I .. -I ../../../
 
 all: $(C_OBJECTS) $(CXX_OBJECTS)
 	g++ -lm $(INCLUDES) $(C_OBJECTS) $(CXX_OBJECTS) $(LIBS) -o $(TARGET)
