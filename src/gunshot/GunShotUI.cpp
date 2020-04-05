@@ -43,6 +43,7 @@ public:
     {
         /* fFont = createFontFromFile("sans", "/home/soren/vcs/gunshot/dejavu-fonts/DejaVuSans.ttf"); */
         fFont = createFontFromMemory("sans", font_memory, font_memory_size, false);
+        error_message = "";
     }
 
 protected:
@@ -81,8 +82,9 @@ protected:
         fill();
         closePath();
 
-        drawCenter(h/2 - l/2, "GUNSHOT CONVOLVER", 0xff, 0x00, 0x00);
-        drawCenter(h/2 + l/2, "Click to load impulse response", 0xff, 0xff, 0xff);
+        drawCenter(h/2 - l, "GUNSHOT CONVOLVER", 0xff, 0x00, 0x00);
+        drawCenter(h/2 + 0, "Click to load impulse response", 0xff, 0xff, 0xff);
+        drawCenter(h/2 + l,  error_message, 0xff, 0xff, 0x00);
     }
 
     void drawCenter(const float y, const char* const s, uint8_t r, uint8_t g, uint8_t b)
@@ -116,8 +118,8 @@ protected:
             // will have to do all calculations based on this.
 
             // Browse for file
-            nfdchar_t *wav_path = NULL;
-            nfdresult_t result = NFD_OpenDialog("wav", NULL, &wav_path);
+            nfdchar_t *ir_path = NULL;
+            nfdresult_t result = NFD_OpenDialog("wav,aif,aiff", NULL, &ir_path);
 
             if (result == NFD_OKAY) {
                 // Proceed
@@ -134,11 +136,12 @@ protected:
             // Load impulse response filimpulse response file
             int err;
             plugin_state_t state;
-            err = plugin_state_init(&state, wav_path);
-            free(wav_path);
+            err = plugin_state_init(&state, ir_path);
+            free(ir_path);
 
             if (err) {
-                throw "Error resetting state";
+                error_message = "ERROR: Supported formats: Uncompressed WAV and AIFF";
+                return true;
             }
 
             // Convert state struct into string which is sent to the plugin
@@ -146,13 +149,16 @@ protected:
             uint32_t length = 0;
             err = plugin_state_serialize(&state, &str, &length);
             if (err) {
-                throw "Error serializing state";
+                error_message = "ERROR: Could not serialize impulse response";
+                return true;
             }
             setState("state", String(str));
 
             // Clean up
             free(str);
             plugin_state_reset(&state, true, false);
+
+            error_message = "";
         }
 
         return true;
@@ -162,6 +168,7 @@ protected:
 
 private:
     FontId fFont;
+    String error_message;
 
    /**
       Set our UI class as non-copyable and add a leak detector just in case.

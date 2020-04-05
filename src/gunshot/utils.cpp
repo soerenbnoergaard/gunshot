@@ -4,12 +4,17 @@
 #include <string.h>
 
 #include "audiofile/AudioFile.h"
-
 extern "C" {
 #include "base64/base64.h"
 }
 
 #define FFT_BLOCK_SIZE 64
+
+#ifdef GUNSHOT_LOG_ENABLE
+static char line[1024];
+#endif
+
+////////////////////////////////////////////////////////////////////////////////
 
 int plugin_state_init(plugin_state_t *state, const char *filename)
 {
@@ -17,15 +22,18 @@ int plugin_state_init(plugin_state_t *state, const char *filename)
     int n;
     AudioFile<float> ir;
 
+
     plugin_state_reset(state, false, false);
 
     ok = ir.load(filename);
     if (!ok) {
+#ifdef GUNSHOT_LOG_ENABLE
+        log_write("Error loading impulse response from file");
+#endif
         return 1;
     }
 
 #ifdef GUNSHOT_LOG_ENABLE
-    char line[1024];
     sprintf(line, "Filename: %s\n", filename);
     log_write(line);
     sprintf(line, "Num channels: %d\n", ir.getNumChannels());
