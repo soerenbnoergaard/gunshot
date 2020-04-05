@@ -31,6 +31,7 @@ Convolution VST plugin.
 - Linux: The file browser crashes Reaper, Ardour, and Mixbus5. It works ok in Bitwig and Waveform Free. I should probably consider another file browser option. It seems like there is one built into DPF! ([gl-examples](https://github.com/DISTRHO/gl-examples/blob/master/examples/file-browser.cpp))
 - The file browser now works well. Still missing: Parameters (wet, dry, low-pass, high-pass), sample rate conversion, and cross compilation.
 - Cross compilation for Windows works somewhat. The GUI is fairly unstable and the font. The drawn GUI seems to stay shown after closing the window (the same seems to be true for the DPF example plugins). Maybe it is related to the cross compilation technique?
+- The Dragonfly reverb also has the same artfacts (i.e. GUI not closing and fonts not showing) as I do - both when I compile it myself and when I download release 3.0. Maybe it is related to testing with VirtualBox? It may not handle OpenGL so well...
 
 ## Building
 
