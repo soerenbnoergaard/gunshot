@@ -20,6 +20,8 @@
 #include "utils.h"
 #include "nfd.h"
 
+#define MAX_PATH_LENGTH 2048
+
 // Add reference to liked-in TTF font
 extern uint8_t _binary_______dejavu_fonts_DejaVuSans_ttf_start;
 extern uint8_t _binary_______dejavu_fonts_DejaVuSans_ttf_end;
@@ -40,34 +42,48 @@ using DGL_NAMESPACE::Rectangle;
 class MyFileBrowser : public StandaloneWindow
 {
 public:
-    char selected_file[1024];
-    bool file_selected;
-
     MyFileBrowser() : StandaloneWindow()
     {
-        // selected_file;
-        file_selected = false;
+        signal_file_selected = false;
     }
 
-    void browse()
+    int browse(char *output)
     {
+        // Open browser and wait for it to close
         FileBrowserOptions o;
         openFileBrowser(o);
+        exec();
+        // show();
+
+        // Return the file selected
+        if (signal_file_selected) {
+            signal_file_selected = false;
+            std::strcpy(output, file_path);
+            return 0;
+        }
+        else {
+            // No file selected
+            output = nullptr;
+            return 1;
+        }
     }
 
 protected:
     void fileBrowserSelected(const char* filename) override
     {
         if (filename != nullptr) {
-            std::strcpy(selected_file, filename);
-            file_selected = true;
+            std::strcpy(file_path, filename);
+            signal_file_selected = true;
         }
         else {
-            file_selected = false;
+            signal_file_selected = false;
         }
         close();
     }
 
+public:
+    char file_path[MAX_PATH_LENGTH];
+    bool signal_file_selected;
 };
 
 
@@ -147,20 +163,15 @@ protected:
         r.setY(0);
 
         if ((r.contains(ev.pos)) && (ev.press == true)) {
+            int err;
+            plugin_state_t state;
+            char ir_path[MAX_PATH_LENGTH];
+
             repaint();
 
-
-            // Toggle between two presets.
-            //
-            // Plugin state string is generated in the UI. The plugin itself
-            // will have to do all calculations based on this.
-
             // Browse for file
-            file_browser.browse();
-            file_browser.exec();
-
-            char *ir_path = file_browser.selected_file;
-            if (!file_browser.file_selected) {
+            err = file_browser.browse(ir_path);
+            if (err) {
                 log_write("No file selected\n");
                 return true;
             }
@@ -168,28 +179,8 @@ protected:
                 log_write(ir_path);
                 log_write("\n");
             }
-            /* return true; */
-
-            /* // OLD FILE BROWSER BEGIN */
-            /* nfdchar_t *ir_path = NULL; */
-            /* nfdresult_t result = NFD_OpenDialog("wav,aif,aiff", NULL, &ir_path); */
-            /*  */
-            /* if (result == NFD_OKAY) { */
-            /*     // Proceed */
-            /* } */
-            /* else if (result == NFD_CANCEL) { */
-            /*     // User pressed cancel */
-            /*     return true; */
-            /* } */
-            /* else { */
-            /*     #<{(| printf("Error: %s\n", NFD_GetError() ); |)}># */
-            /*     return true; */
-            /* } */
-            /* // OLD FILE BROWSER END */
 
             // Load impulse response filimpulse response file
-            int err;
-            plugin_state_t state;
             err = plugin_state_init(&state, ir_path);
 
             if (err) {
