@@ -116,7 +116,7 @@ protected:
     */
     int64_t getUniqueId() const override
     {
-        /* soerenbnoergaard: I just made something up */
+        // SBN: I just made something up
         return d_cconst('d', 'L', 'b', 'q');
     }
 

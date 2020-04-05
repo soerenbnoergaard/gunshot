@@ -19,6 +19,13 @@
 #include "utils.h"
 #include "nfd.h"
 
+// Add reference to liked-in TTF font
+extern uint8_t _binary_______dejavu_fonts_DejaVuSans_ttf_start;
+extern uint8_t _binary_______dejavu_fonts_DejaVuSans_ttf_end;
+
+const uint8_t *font_memory = &_binary_______dejavu_fonts_DejaVuSans_ttf_start;
+const uint32_t font_memory_size = (uint32_t)(&_binary_______dejavu_fonts_DejaVuSans_ttf_end - &_binary_______dejavu_fonts_DejaVuSans_ttf_start);
+
 START_NAMESPACE_DISTRHO
 
 /**
@@ -32,10 +39,10 @@ class GunShotUI : public UI
 {
 public:
     GunShotUI()
-        : UI(512, 512)
+        : UI(512, 128)
     {
-        // TODO explain why this is here
-        setGeometryConstraints(128, 128, true);
+        /* fFont = createFontFromFile("sans", "/home/soren/vcs/gunshot/dejavu-fonts/DejaVuSans.ttf"); */
+        fFont = createFontFromMemory("sans", font_memory, font_memory_size, false);
     }
 
 protected:
@@ -60,20 +67,31 @@ protected:
     * Widget Callbacks */
 
    /**
-      The OpenGL drawing function.
-      This UI will draw a 3x3 grid, with on/off states according to plugin state.
+      The NanoVG drawing function.
     */
-    void onDisplay() override
+    void onNanoDisplay() override
     {
-        Rectangle<int> r;
-        r.setWidth(getWidth());
-        r.setHeight(getHeight());
-        r.setX(0);
-        r.setY(0);
+        float h = getHeight(); // Window height
+        float l = 20; // Line height
+        fontSize(15.0f);
 
-        glColor3f(0.0f, 0.0f, 0.2f);
+        beginPath();
+        rect(0.0f, 0.0f, getWidth(), getHeight());
+        fillColor(0, 0, 0);
+        fill();
+        closePath();
 
-        r.draw();
+        drawCenter(h/2 - l/2, "GUNSHOT CONVOLVER", 0xff, 0x00, 0x00);
+        drawCenter(h/2 + l/2, "Click to load impulse response", 0xff, 0xff, 0xff);
+    }
+
+    void drawCenter(const float y, const char* const s, uint8_t r, uint8_t g, uint8_t b)
+    {
+        beginPath();
+        fillColor(r, g, b);
+        textAlign(ALIGN_CENTER|ALIGN_MIDDLE);
+        text(getWidth()/2, y, s, NULL);
+        closePath();
     }
 
    /**
@@ -143,6 +161,7 @@ protected:
     // -------------------------------------------------------------------------------------------------------
 
 private:
+    FontId fFont;
 
    /**
       Set our UI class as non-copyable and add a leak detector just in case.
