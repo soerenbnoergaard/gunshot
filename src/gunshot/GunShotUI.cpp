@@ -15,7 +15,7 @@
  */
 
 #include "DistrhoUI.hpp"
-#include "StandaloneWindow.hpp"
+#include "Window.hpp"
 #include "extra/String.hpp"
 #include "utils.h"
 
@@ -35,64 +35,12 @@ START_NAMESPACE_DISTRHO
  */
 using DGL_NAMESPACE::Rectangle;
 
-
-// -----------------------------------------------------------------------------------------------------------
-
-class MyFileBrowser : public StandaloneWindow
-{
-public:
-    MyFileBrowser() : StandaloneWindow()
-    {
-        signal_file_selected = false;
-    }
-
-    int browse(char *output)
-    {
-        // Open browser and wait for it to close
-        FileBrowserOptions o;
-        openFileBrowser(o);
-        exec();
-        // show();
-
-        // Return the file selected
-        if (signal_file_selected) {
-            signal_file_selected = false;
-            std::strcpy(output, file_path);
-            return 0;
-        }
-        else {
-            // No file selected
-            output = nullptr;
-            return 1;
-        }
-    }
-
-protected:
-    void fileBrowserSelected(const char* filename) override
-    {
-        if (filename != nullptr) {
-            std::strcpy(file_path, filename);
-            signal_file_selected = true;
-        }
-        else {
-            signal_file_selected = false;
-        }
-        close();
-    }
-
-public:
-    char file_path[MAX_PATH_LENGTH];
-    bool signal_file_selected;
-};
-
-
 // -----------------------------------------------------------------------------------------------------------
 
 class GunShotUI : public UI
 {
 public:
-    GunShotUI()
-        : UI(512, 128)
+    GunShotUI() : UI(512, 128)
     {
         /* fFont = createFontFromFile("sans", "/home/soren/vcs/gunshot/dejavu-fonts/DejaVuSans.ttf"); */
         fFont = createFontFromMemory("sans", font_memory, font_memory_size, false);
@@ -149,6 +97,45 @@ protected:
         closePath();
     }
 
+    /**
+      File browser selected function.
+    */
+    void uiFileBrowserSelected(const char *filename) override
+    {
+        int err;
+        plugin_state_t state;
+
+        // Exit if no file is selected
+        if (filename == nullptr) {
+            return;
+        }
+
+        // Load impulse response file
+        err = plugin_state_init(&state, filename);
+
+        if (err) {
+            error_message = "ERROR: Supported formats: Uncompressed WAV and AIFF";
+            log_write(error_message);
+            return;
+        }
+
+        // Convert state struct into string which is sent to the plugin
+        char *str = NULL;
+        uint32_t length = 0;
+        err = plugin_state_serialize(&state, &str, &length);
+        if (err) {
+            error_message = "ERROR: Could not serialize impulse response";
+            log_write(error_message);
+            return;
+        }
+        setState("state", String(str));
+
+        // Clean up
+        free(str);
+        plugin_state_reset(&state, true, false);
+        error_message = "";
+    }
+
    /**
       Mouse press event.
       This UI will de/activate blocks when you click them and report it as a state change to the plugin.
@@ -168,40 +155,9 @@ protected:
 
             repaint();
 
-            // Browse for file
-            err = file_browser.browse(ir_path);
-            if (err) {
-                log_write("No file selected\n");
-                return true;
-            }
-            else {
-                log_write(ir_path);
-                log_write("\n");
-            }
-
-            // Load impulse response filimpulse response file
-            err = plugin_state_init(&state, ir_path);
-
-            if (err) {
-                error_message = "ERROR: Supported formats: Uncompressed WAV and AIFF";
-                return true;
-            }
-
-            // Convert state struct into string which is sent to the plugin
-            char *str = NULL;
-            uint32_t length = 0;
-            err = plugin_state_serialize(&state, &str, &length);
-            if (err) {
-                error_message = "ERROR: Could not serialize impulse response";
-                return true;
-            }
-            setState("state", String(str));
-
-            // Clean up
-            free(str);
-            plugin_state_reset(&state, true, false);
-
-            error_message = "";
+            Window& w = getParentWindow();
+            Window::FileBrowserOptions o;
+            w.openFileBrowser(o);
         }
 
         return true;
@@ -212,7 +168,6 @@ protected:
 private:
     FontId fFont;
     String error_message;
-    MyFileBrowser file_browser;
 
    /**
       Set our UI class as non-copyable and add a leak detector just in case.

@@ -34,19 +34,18 @@ int plugin_state_init(plugin_state_t *state, const char *filename)
     }
 
 #ifdef GUNSHOT_LOG_ENABLE
-    sprintf(line, "Filename: %s\n", filename);
+    sprintf(line, "Filename: %s", filename);
     log_write(line);
-    sprintf(line, "Num channels: %d\n", ir.getNumChannels());
+    sprintf(line, "Num channels: %d", ir.getNumChannels());
     log_write(line);
-    sprintf(line, "Num samples per channel: %d\n", ir.getNumSamplesPerChannel());
+    sprintf(line, "Num samples per channel: %d", ir.getNumSamplesPerChannel());
     log_write(line);
-    sprintf(line, "Sample rate: %d\n", ir.getSampleRate());
+    sprintf(line, "Sample rate: %d", ir.getSampleRate());
     log_write(line);
-    sprintf(line, "Bit depth: %d\n", ir.getBitDepth());
+    sprintf(line, "Bit depth: %d", ir.getBitDepth());
     log_write(line);
-    sprintf(line, "Length in seconds: %f\n", ir.getLengthInSeconds());
+    sprintf(line, "Length in seconds: %f", ir.getLengthInSeconds());
     log_write(line);
-    sprintf(line, "\n");
 #endif
 
     if ((ir.getNumChannels() < 1) || (2 < ir.getNumChannels())) {
@@ -298,7 +297,9 @@ int log_write(const char *s)
 {
 #ifdef GUNSHOT_LOG_ENABLE
     FILE *f = fopen(GUNSHOT_LOG_FILE, "a");
-    fwrite(s, sizeof(char), strlen(s), f);
+    /* fwrite(s, sizeof(char), strlen(s), f); */
+    /* fwrite("\n", sizeof(char), 1, f); */
+    fprintf(f, "%s\n", s);
     fclose(f);
 #endif
 }
