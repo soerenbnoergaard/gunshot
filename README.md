@@ -30,7 +30,7 @@ Convolution VST plugin.
 - I need a file browser. FLTK does not compile with `-fPIC` so it does not work well for shared objects. I am trying out some alternatives as FLTK is a bit hard to configure - nativefiledialog works very well! (only tested on linux but should work on the other platforms as well).
 - Linux: The file browser crashes Reaper, Ardour, and Mixbus5. It works ok in Bitwig and Waveform Free. I should probably consider another file browser option. It seems like there is one built into DPF! ([gl-examples](https://github.com/DISTRHO/gl-examples/blob/master/examples/file-browser.cpp))
 - The file browser now works well. Still missing: Parameters (wet, dry, low-pass, high-pass), sample rate conversion, and cross compilation.
-- Cross compilation for Windows works somewhat. The GUI is fairly unstable and the font .
+- Cross compilation for Windows works somewhat. The GUI is fairly unstable and the font. The drawn GUI seems to stay shown after closing the window (the same seems to be true for the DPF example plugins). Maybe it is related to the cross compilation technique?
 
 ## Building
 
