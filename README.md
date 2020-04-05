@@ -29,6 +29,7 @@ Convolution VST plugin.
 - The state can now be extracted from the plugin when using Right Click - Save VST Preset. It is, however, not saved when storing a regular Bitwig preset. The Distrho States example exports the state in both cases (the Bitwig preset can be explored with `binwalk -> dd -> unzip`). There must be some little difference between the two...
 - It seems like the state is only stored to a preset when the plugin has a UI - added a blank IO and now the preset looks good!
 - I need a file browser. FLTK does not compile with `-fPIC` so it does not work well for shared objects. I am trying out some alternatives as FLTK is a bit hard to configure - nativefiledialog works very well! (only tested on linux but should work on the other platforms as well).
+- Linux: The file browser crashes Reaper, Ardour, and Mixbus5. It works ok in Bitwig and Waveform Free. I should probably consider another file browser option...
 
 ## Building
 
