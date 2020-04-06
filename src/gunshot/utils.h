@@ -20,7 +20,7 @@ int plugin_state_serialize(plugin_state_t *state, char **output, uint32_t *lengt
 int plugin_state_deserialize(plugin_state_t *state, char *input, uint32_t length);
 
 // Log
-/* #define GUNSHOT_LOG_FILE "gunshot.log" */
+#define GUNSHOT_LOG_FILE "gunshot.log"
 
 int log_init(void);
 int log_write(const char *s);
