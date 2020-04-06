@@ -45,8 +45,8 @@ public:
 
 #ifdef GUNSHOT_LOG_FILE
         log_init();
+        log_write("Log started");
 #endif
-        update_state = 0;
         sampleRateChanged(getSampleRate());
     }
 
@@ -214,6 +214,7 @@ protected:
         else {
             return String("");
         }
+        return String("");
     }
 
     /**
