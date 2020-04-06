@@ -141,6 +141,7 @@ protected:
     */
     void initState(uint32_t index, String& stateKey, String& defaultStateValue) override
     {
+        log_write("Call: initState");
         // Generate String-representation of default state
         int err;
         plugin_state_t default_state;
@@ -204,7 +205,7 @@ protected:
      */
     String getState(const char* key) const override
     {
-        log_write("getState called");
+        log_write("Call: getState");
 
         // Return the cached version of `state` instead of re-serializing it.
         if (std::strcmp(key, "state") == 0) {
@@ -222,6 +223,7 @@ protected:
     */
     void setState(const char* key, const char* value) override
     {
+        log_write("Call: setState");
         int err;
         if (std::strcmp(key, "state") == 0) {
             err = plugin_state_deserialize(&state, (char *)value, std::strlen(value));
