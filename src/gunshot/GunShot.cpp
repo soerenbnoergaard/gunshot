@@ -209,7 +209,8 @@ protected:
             uint32_t length = 0;
             err = plugin_state_serialize(&state_copy, &s, &length);
             if (err) {
-                throw "Error serializing state";
+                log_write("Error serializing state");
+                return String("");
             }
             ret = String(s);
             free(s);
@@ -232,7 +233,8 @@ protected:
         if (std::strcmp(key, "state") == 0) {
             err = plugin_state_deserialize(&state, (char *)value, std::strlen(value));
             if (err) {
-                throw "Error deserializing state";
+                log_write("Error deserializing state");
+                return;
             }
             update_state = 0;
 

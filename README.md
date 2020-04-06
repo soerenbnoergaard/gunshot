@@ -34,6 +34,7 @@ Convolution VST plugin.
 - Cross compilation for Windows works somewhat. The GUI is fairly unstable and the font. The drawn GUI seems to stay shown after closing the window (the same seems to be true for the DPF example plugins). Maybe it is related to the cross compilation technique?
 - The Dragonfly reverb also has the same artfacts (i.e. GUI not closing and fonts not showing) as I do - both when I compile it myself and when I download release 3.0. Maybe it is related to testing with VirtualBox? It may not handle OpenGL so well...
 - Implemented sample rate conversion - this was very easy using libsamplerate! Sample rate conversion is done at run-time (and not when the sample is loaded) in order to adapt to changes in sample rate in a project.
+- Cross compilation does work on a real Windows PC (not a VirtaulBox). The issue must have been related to the graphics drivers in VirtualBox. However, the plugin crashes Windows Tracktion T7, Mixbus, and Reaper when saving state. Maybe something is wrong with `getState()`?
 
 ## Building
 
@@ -41,6 +42,13 @@ After cloning the repository, check out the submodules too:
 
     git submodule init
     git submodule update
+
+    # To clean a repo already checked out
+    git clean -xfd
+    git submodule foreach --recursive git clean -xfd
+    git reset --hard
+    git submodule foreach --recursive git reset --hard
+    git submodule update --init --recursive
 
 The steps needed to build the plugin are:
 
