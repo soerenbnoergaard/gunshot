@@ -1,7 +1,3 @@
-[submodule "dpf"]
-	path = dpf
-	url = https://github.com/DISTRHO/DPF
-    ignore = dirty
 [submodule "fftconvolver"]
 	path = fftconvolver
 	url = https://github.com/HiFi-LoFi/FFTConvolver
@@ -18,3 +14,6 @@
 	path = libsamplerate
 	url = https://github.com/erikd/libsamplerate
     ignore = dirty
+[submodule "dpf"]
+	path = dpf
+	url = https://github.com/soerenbnoergaard/DPF
