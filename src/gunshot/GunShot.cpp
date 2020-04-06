@@ -204,17 +204,15 @@ protected:
      */
     String getState(const char* key) const override
     {
-        return String("");
+        log_write("getState called");
 
-        /* log_write("getState called"); */
-        /*  */
-        /* // Return the cached version of `state` instead of re-serializing it. */
-        /* if (std::strcmp(key, "state") == 0) { */
-        /*     return state_cache; */
-        /* } */
-        /* else { */
-        /*     return String(""); */
-        /* } */
+        // Return the cached version of `state` instead of re-serializing it.
+        if (std::strcmp(key, "state") == 0) {
+            return state_cache;
+        }
+        else {
+            return String("");
+        }
     }
 
     /**
