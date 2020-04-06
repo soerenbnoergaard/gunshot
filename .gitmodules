@@ -14,9 +14,7 @@
 	path = base64
 	url = https://github.com/joedf/base64.c
     ignore = dirty
-[submodule "nativefiledialog"]
-	path = nativefiledialog
-	url = https://github.com/mlabbe/nativefiledialog
 [submodule "libsamplerate"]
 	path = libsamplerate
 	url = https://github.com/erikd/libsamplerate
+    ignore = dirty

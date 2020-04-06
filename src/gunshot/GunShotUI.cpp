@@ -148,10 +148,6 @@ protected:
         r.setY(0);
 
         if ((r.contains(ev.pos)) && (ev.press == true)) {
-            int err;
-            plugin_state_t state;
-            char ir_path[MAX_PATH_LENGTH];
-
             repaint();
 
             Window& w = getParentWindow();
