@@ -135,9 +135,10 @@ protected:
     /**
       Set the state key and default value of @a index.
       This function will be called once, shortly after the plugin is created.
+
+      SBN: The only purpose of this functions is to provide default values for
+      each state variable.
     */
-    // SBN: I think the only purpose of this functions is to provide default
-    // values for each state variable.
     void initState(uint32_t index, String& stateKey, String& defaultStateValue) override
     {
         // Generate String-representation of default state
@@ -193,11 +194,10 @@ protected:
     /**
       Get the value of an internal state.
       The host may call this function from any non-realtime context.
-    */
-    // SBN: I believe this function is called from the host to obtain state
-    // variables that it can store. In Bitwig, this is callled when running
-    // "Save VST Preset..." from the right click menu. It is not called when a
-    // preset is store internally in Bitwig.
+
+      SBN: This function is called from the host to obtain state variables that
+      it can store, e.g. in internal presets or in the project session.
+     */
     String getState(const char* key) const override
     {
         int err;
@@ -223,9 +223,9 @@ protected:
 
     /**
       Change an internal state.
+      SBN: This function is called whenever the UI wants to change the internal
+      state.
     */
-    // SBN: I cannot see this function being called. It may be called only from
-    // the User Interface?
     void setState(const char* key, const char* value) override
     {
         int err;
@@ -334,12 +334,13 @@ protected:
             update_state = 4;
             break;
 
-        default:
+        case 4:
+            // Real-time audio processing
+
             convolver_left.process((fftconvolver::Sample *)inL, (fftconvolver::Sample *)outL, frames);
             convolver_right.process((fftconvolver::Sample *)inR, (fftconvolver::Sample *)outR, frames);
             break;
         }
-
     }
 
    /* --------------------------------------------------------------------------------------------------------
