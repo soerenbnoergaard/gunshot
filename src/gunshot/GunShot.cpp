@@ -146,23 +146,27 @@ protected:
         plugin_state_t default_state;
         err = plugin_state_reset(&default_state, false, true);
         if (err) {
-            throw "Error resetting state";
+            log_write("Error resetting state");
+            return;
         }
 
         char *str = NULL;
         uint32_t length = 0;
         err = plugin_state_serialize(&default_state, &str, &length);
         if (err) {
-            throw "Error serializing state";
+            log_write("Error serializing state");
+            return;
         }
+
+        state_cache = String(str);
 
         switch (index) {
         case 0:
             stateKey = "state";
-            defaultStateValue = String(str);
+            defaultStateValue = state_cache;
             break;
         default:
-            throw "Index out of range";
+            log_write("Index out of range");
             break;
         }
 
@@ -200,26 +204,13 @@ protected:
      */
     String getState(const char* key) const override
     {
-        int err;
-        String ret;
-        plugin_state_t state_copy = state;
-
+        // Return the cached version of `state` instead of re-serializing it.
         if (std::strcmp(key, "state") == 0) {
-            char *s = NULL;
-            uint32_t length = 0;
-            err = plugin_state_serialize(&state_copy, &s, &length);
-            if (err) {
-                log_write("Error serializing state");
-                return String("");
-            }
-            ret = String(s);
-            free(s);
+            return state_cache;
         }
         else {
-            ret = String("");
+            return String("");
         }
-
-        return ret;
     }
 
     /**
@@ -236,8 +227,8 @@ protected:
                 log_write("Error deserializing state");
                 return;
             }
+            state_cache = String(value);
             update_state = 0;
-
         }
     }
 
@@ -362,6 +353,7 @@ protected:
 private:
 
     plugin_state_t state;
+    String state_cache; // Serialized version of `state` which can be quickly returned in `getState()`.
     uint32_t update_state;
     fftconvolver::FFTConvolver convolver_left;
     fftconvolver::FFTConvolver convolver_right;
