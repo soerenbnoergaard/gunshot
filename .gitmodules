@@ -17,3 +17,6 @@
 [submodule "nativefiledialog"]
 	path = nativefiledialog
 	url = https://github.com/mlabbe/nativefiledialog
+[submodule "libsamplerate"]
+	path = libsamplerate
+	url = https://github.com/erikd/libsamplerate

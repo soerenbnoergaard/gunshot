@@ -17,6 +17,7 @@ Convolution VST plugin.
 - [AudioFile](https://github.com/adamstark/AudioFile) - A simple C++ library for reading and writing audio files.
 - [base64.c](https://github.com/joedf/base64.c) - Base64 Library in C
 - [DejaVu Fonts](https://dejavu-fonts.github.io/) - The DejaVu fonts are a font family based on the Vera Fonts.
+- [libsamplerate](https://github.com/erikd/libsamplerate) - libsamplerate (also known as Secret Rabbit Code) is a library for performing sample rate conversion of audio data.
 
 ## Progress log
 
@@ -48,5 +49,5 @@ The steps needed to build the plugin are:
 
     # Cross compiling for Windows from Linux/Ubuntu
     sudo apt install mingw-w64
-    make WIN32=true CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ LD=x86_64-w64-mingw32-ld HAVE_CAIRO=false -C dpf/dgl
-    make WIN32=true CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ LD=x86_64-w64-mingw32-ld HAVE_CAIRO=false -C src/gunshot
+    make WIN32=true HAVE_CAIRO=false CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ LD=x86_64-w64-mingw32-ld -C dpf/dgl
+    make WIN32=true HAVE_CAIRO=false CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ LD=x86_64-w64-mingw32-ld -C src/gunshot
