@@ -37,6 +37,7 @@ Convolution VST plugin.
 - Cross compilation does work on a real Windows PC (not a VirtaulBox). The issue must have been related to the graphics drivers in VirtualBox. However, the plugin crashes Windows Tracktion T7, Mixbus, and Reaper when saving state. Maybe something is wrong with `getState()`?
 - Fixed the bug where the plugin crashes in Windows DAWs. There was problem with dynamic array allocation in the `String` class of `dpf`. I have created a fork with the changes and will send a pull request.
 - In Windows Reaper and Windows Mixbus, the plugin starts with no initial impulse response (not even a dirac).
+- Looking at cross compiling using this Docker image: [multiarch/crossbuild](https://hub.docker.com/r/multiarch/crossbuild).
 
 ## Building
 
@@ -62,3 +63,17 @@ The steps needed to build the plugin are:
     sudo apt install mingw-w64
     make WIN32=true HAVE_CAIRO=false CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ LD=x86_64-w64-mingw32-ld -C dpf/dgl
     make WIN32=true HAVE_CAIRO=false CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ LD=x86_64-w64-mingw32-ld -C src/gunshot
+
+Cross compilation from Docker (not working yet):
+
+    docker pull multiarch/crossbuild
+    docker run -it multiarch/crossbuild /bin/bash
+    docker run --rm multiarch/crossbuild apt-get install -y -q pkg-config
+    wget http://ftp.us.debian.org/debian/pool/main/p/pkg-config/pkg-config_0.28-1_amd64.deb
+    dpkg -i pkg-config_0.28-1_amd64.deb
+
+    # To remove docker
+    docker system prune
+    docker rmi multiarch/crossbuild
+
+

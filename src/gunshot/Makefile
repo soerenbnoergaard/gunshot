@@ -24,8 +24,6 @@ FILES_UI  = \
 	utils.cpp \
 	../../base64/base64.c
 
-FONT_OBJECTS = ../../dejavu-fonts/DejaVuSans.o
-
 # --------------------------------------------------------------
 # Do some magic
 
@@ -52,7 +50,4 @@ all: $(FONT_OBJECTS) $(TARGETS)
 	cp ../../bin/gunshot-vst.so ~/.vst/soerenbnoergaard
 
 # --------------------------------------------------------------
-
-%.o:%.ttf
-	$(LD) -r -b binary -o $@ $<
 

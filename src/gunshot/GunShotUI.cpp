@@ -18,15 +18,9 @@
 #include "Window.hpp"
 #include "extra/String.hpp"
 #include "utils.h"
+#include "dejavu-fonts/DejaVuSans.ttf.h"
 
 #define MAX_PATH_LENGTH 2048
-
-// Add reference to liked-in TTF font
-extern uint8_t _binary_______dejavu_fonts_DejaVuSans_ttf_start;
-extern uint8_t _binary_______dejavu_fonts_DejaVuSans_ttf_end;
-
-const uint8_t *font_memory = &_binary_______dejavu_fonts_DejaVuSans_ttf_start;
-const uint32_t font_memory_size = (uint32_t)(&_binary_______dejavu_fonts_DejaVuSans_ttf_end - &_binary_______dejavu_fonts_DejaVuSans_ttf_start);
 
 START_NAMESPACE_DISTRHO
 
@@ -42,7 +36,7 @@ class GunShotUI : public UI
 public:
     GunShotUI() : UI(512, 128)
     {
-        fFont = createFontFromMemory("sans", font_memory, font_memory_size, false);
+        fFont = createFontFromMemory("sans", dejavusans_ttf, dejavusans_ttf_length, false);
         error_message = "";
     }
 
