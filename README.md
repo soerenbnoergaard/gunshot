@@ -40,7 +40,7 @@ Convolution VST plugin.
 
 ## Bugs and TODO
 
-- In Linux Bitwig: Terminate process and reload with several instances of `gunshot`, all plugins crash when re-activating the engine. Probably related to all the heavy calculations taking place in the real-time section (`GunShot::run`).
+- In Linux Bitwig: Terminate process and reload with several instances of `gunshot`, all plugins crash when re-activating the engine. Probably related to all the heavy calculations taking place in the real-time section (`GunShot::run`). This has been improved a lot by moving the hard work out of `run()`, but the plugin can still crash sometimes when loading a new impulse response during playback. Perhalps some work could be done in a separate thread?
 - In Windows Reaper and Windows Mixbus, the plugin starts with no initial impulse response (not even a dirac).
 - Parameters for high-pass, low-pass, dry level, and wet level.
 

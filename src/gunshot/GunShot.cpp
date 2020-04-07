@@ -173,6 +173,7 @@ protected:
 
         // Clean up
         free(str);
+        update();
     }
 
    /* --------------------------------------------------------------------------------------------------------
@@ -233,7 +234,7 @@ protected:
                 return;
             }
             state_cache = String(value);
-            update_state = 0;
+            update();
         }
     }
 
@@ -241,104 +242,80 @@ protected:
     * Audio/MIDI Processing */
 
    /**
+      Update non-real-time parameters.
+    */
+    void update(void)
+    {
+        uint32_t n;
+        uint32_t err;
+        static SRC_DATA src_data_left;
+        static SRC_DATA src_data_right;
+
+        // Sample rate convert left channel
+        src_data_left.data_in  = state.ir_left;
+        src_data_right.data_in = state.ir_right;
+
+        src_data_left.src_ratio  = getSampleRate()/state.ir_sample_rate_Hz;
+        src_data_right.src_ratio = getSampleRate()/state.ir_sample_rate_Hz;
+
+        src_data_left.input_frames  = state.ir_num_samples_per_channel;
+        src_data_right.input_frames = state.ir_num_samples_per_channel;
+
+        src_data_left.output_frames  = (uint32_t)(src_data_left.src_ratio  * state.ir_num_samples_per_channel) + 1;
+        src_data_right.output_frames = (uint32_t)(src_data_right.src_ratio * state.ir_num_samples_per_channel) + 1;
+
+        src_data_left.data_out  = nullptr;
+        src_data_right.data_out = nullptr;
+
+        src_data_left.data_out  = (float *)malloc(sizeof(float) * src_data_left.output_frames);
+        src_data_right.data_out = (float *)malloc(sizeof(float) * src_data_right.output_frames);
+
+        if (src_data_left.data_out == nullptr) {
+            return;
+        }
+        if (src_data_right.data_out == nullptr) {
+            return;
+        }
+
+        err = src_simple(&src_data_left, SRC_SINC_BEST_QUALITY, 1);
+        if (err) {
+            return;
+        }
+        err = src_simple(&src_data_right, SRC_SINC_BEST_QUALITY, 1);
+        if (err) {
+            return;
+        }
+
+        // Increasing the sample rate also increases the amplitude so the
+        // impulse response is scaled down before initializing the
+        // convolver.
+        for (n = 0; n < src_data_left.output_frames_gen; n++) {
+            src_data_left.data_out[n] /= src_data_left.src_ratio;
+            src_data_right.data_out[n] /= src_data_right.src_ratio;
+        }
+
+        // Load impulse reponse into convolver
+        convolver_left.init(state.fft_block_size, (fftconvolver::Sample *)src_data_left.data_out, src_data_left.output_frames_gen);
+        convolver_right.init(state.fft_block_size, (fftconvolver::Sample *)src_data_right.data_out, src_data_right.output_frames_gen);
+
+        free(src_data_left.data_out);
+        free(src_data_right.data_out);
+    }
+
+   /**
       Run/process function for plugins without MIDI input.
       @note Some parameters might be null if there are no audio inputs or outputs.
     */
     void run(const float** inputs, float** outputs, uint32_t frames) override
     {
-        // Sample rate conversion data
-        static SRC_DATA src_data_left;
-        static SRC_DATA src_data_right;
-
-        uint32_t n;
-        uint32_t err;
         const float* const inL = inputs[0];
         const float* const inR = inputs[1];
         float* outL = outputs[0];
         float* outR = outputs[1];
 
-        switch (update_state) {
-        case 0:
-            // Sample rate convert left channel
-
-            src_data_left.data_in = state.ir_left;
-            src_data_left.src_ratio = getSampleRate()/state.ir_sample_rate_Hz;
-            src_data_left.input_frames = state.ir_num_samples_per_channel;
-            src_data_left.output_frames = (uint32_t)(src_data_left.src_ratio * state.ir_num_samples_per_channel) + 1;
-
-            src_data_left.data_out = nullptr;
-            src_data_left.data_out = (float *)malloc(sizeof(float) * src_data_left.output_frames);
-            if (src_data_left.data_out == nullptr) {
-                break;
-            }
-
-            err = src_simple(&src_data_left, SRC_SINC_BEST_QUALITY, 1);
-            if (err) {
-                break;
-            }
-
-            // Increasing the sample rate also increases the amplitude so the
-            // impulse response is scaled down before initializing the
-            // convolver.
-            for (n = 0; n < src_data_left.output_frames_gen; n++) {
-                src_data_left.data_out[n] /= src_data_left.src_ratio;
-            }
-
-            update_state = 1;
-            break;
-
-        case 1:
-            // Sample rate convert right channel
-
-            src_data_right.data_in = state.ir_right;
-            src_data_right.src_ratio = src_data_left.src_ratio;
-            src_data_right.input_frames = src_data_left.input_frames;
-            src_data_right.output_frames = src_data_left.output_frames;
-
-            src_data_right.data_out = nullptr;
-            src_data_right.data_out = (float *)malloc(sizeof(float) * src_data_right.output_frames);
-            if (src_data_right.data_out == nullptr) {
-                break;
-            }
-
-            err = src_simple(&src_data_right, SRC_SINC_BEST_QUALITY, 1);
-            if (err) {
-                break;
-            }
-
-            // Pre-scale the impulse response (like the left channel):
-            for (n = 0; n < src_data_right.output_frames_gen; n++) {
-                src_data_right.data_out[n] /= src_data_right.src_ratio;
-            }
-
-            update_state = 2;
-            break;
-
-        case 2:
-            // Load left channel impulse response
-
-            convolver_left.init(state.fft_block_size, (fftconvolver::Sample *)src_data_left.data_out, src_data_left.output_frames_gen);
-
-            free(src_data_left.data_out);
-            update_state = 3;
-            break;
-
-        case 3:
-            // Load right channel impulse response
-
-            convolver_right.init(state.fft_block_size, (fftconvolver::Sample *)src_data_right.data_out, src_data_right.output_frames_gen);
-
-            free(src_data_right.data_out);
-            update_state = 4;
-            break;
-
-        case 4:
-            // Real-time audio processing
-
-            convolver_left.process((fftconvolver::Sample *)inL, (fftconvolver::Sample *)outL, frames);
-            convolver_right.process((fftconvolver::Sample *)inR, (fftconvolver::Sample *)outR, frames);
-            break;
-        }
+        // Real-time audio processing
+        convolver_left.process((fftconvolver::Sample *)inL, (fftconvolver::Sample *)outL, frames);
+        convolver_right.process((fftconvolver::Sample *)inR, (fftconvolver::Sample *)outR, frames);
     }
 
    /* --------------------------------------------------------------------------------------------------------
@@ -350,7 +327,7 @@ protected:
     */
     void sampleRateChanged(double newSampleRate) override
     {
-        update_state = 0;
+        update();
     }
 
     // -------------------------------------------------------------------------------------------------------
@@ -359,7 +336,6 @@ private:
 
     plugin_state_t state;
     String state_cache; // Serialized version of `state` which can be quickly returned in `getState()`.
-    uint32_t update_state;
     fftconvolver::FFTConvolver convolver_left;
     fftconvolver::FFTConvolver convolver_right;
 
