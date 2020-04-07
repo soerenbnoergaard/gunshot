@@ -36,9 +36,13 @@ Convolution VST plugin.
 - Implemented sample rate conversion - this was very easy using libsamplerate! Sample rate conversion is done at run-time (and not when the sample is loaded) in order to adapt to changes in sample rate in a project.
 - Cross compilation does work on a real Windows PC (not a VirtaulBox). The issue must have been related to the graphics drivers in VirtualBox. However, the plugin crashes Windows Tracktion T7, Mixbus, and Reaper when saving state. Maybe something is wrong with `getState()`?
 - Fixed the bug where the plugin crashes in Windows DAWs. There was problem with dynamic array allocation in the `String` class of `dpf`. I have created a fork with the changes and will send a pull request.
-- In Windows Reaper and Windows Mixbus, the plugin starts with no initial impulse response (not even a dirac).
 - Looking at cross compiling using this Docker image: [multiarch/crossbuild](https://hub.docker.com/r/multiarch/crossbuild). There are some issues with the OpenGL libraries. However, I can compile on a Mac as well.
 
+## Bugs and TODO
+
+- In Linux Bitwig: Terminate process and reload with several instances of `gunshot`, all plugins crash when re-activating the engine.
+- In Windows Reaper and Windows Mixbus, the plugin starts with no initial impulse response (not even a dirac).
+- Parameters for high-pass, low-pass, dry level, and wet level.
 
 ## Building
 
