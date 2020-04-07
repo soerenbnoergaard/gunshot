@@ -46,8 +46,11 @@ endif
 TARGETS += lv2_dsp
 TARGETS += vst
 
-all: $(FONT_OBJECTS) $(TARGETS)
-	cp ../../bin/gunshot-vst.so ~/.vst/soerenbnoergaard
+all: $(TARGETS)
+	@#cp ../../bin/gunshot-vst.so ~/.vst/soerenbnoergaard
+ifeq ($(MACOS),true)
+	sh generate-vst-bundles.sh
+endif
 
 # --------------------------------------------------------------
 
