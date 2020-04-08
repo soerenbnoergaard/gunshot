@@ -22,12 +22,14 @@
 #include "fftconvolver/Utilities.h"
 #include "samplerate.h"
 
-#define NUM_PARAMETERS 2
+#define NUM_PARAMETERS 4
 #define NUM_PROGRAMS 0
 #define NUM_STATES 1
 
 #define PARAM_DRY 0
 #define PARAM_WET 1
+#define PARAM_HIGHPASS 2
+#define PARAM_LOWPASS 3
 
 
 float convert_dB_to_linear(float x_dB)
@@ -182,6 +184,30 @@ protected:
             param_wet_lin = convert_dB_to_linear(param_wet_dB);
             break;
 
+        case PARAM_HIGHPASS:
+            parameter.hints  = kParameterIsAutomable;
+            parameter.name   = "High pass";
+            parameter.symbol = "highpass";
+            parameter.unit   = "Hz";
+            parameter.ranges.def = 0.02f;
+            parameter.ranges.min = 0.02f;
+            parameter.ranges.max = 0.99f;
+
+            param_highpass_g = parameter.ranges.def;
+            break;
+
+        case PARAM_LOWPASS:
+            parameter.hints  = kParameterIsAutomable;
+            parameter.name   = "Low pass";
+            parameter.symbol = "lowpass";
+            parameter.unit   = "Hz";
+            parameter.ranges.def = 0.99f;
+            parameter.ranges.min = 0.02f;
+            parameter.ranges.max = 0.99f;
+
+            param_lowpass_g = parameter.ranges.def;
+            break;
+
         default:
             break;
         }
@@ -257,6 +283,14 @@ protected:
             return param_wet_dB;
             break;
 
+        case PARAM_HIGHPASS:
+            return param_highpass_g;
+            break;
+
+        case PARAM_LOWPASS:
+            return param_lowpass_g;
+            break;
+
         default:
             return 0.0;
             break;
@@ -283,10 +317,20 @@ protected:
             param_dry_dB = value;
             param_dry_lin = convert_dB_to_linear(value);
             break;
+
         case PARAM_WET:
             param_wet_dB = value;
             param_wet_lin = convert_dB_to_linear(value);
             break;
+
+        case PARAM_HIGHPASS:
+            param_highpass_g = value;
+            break;
+
+        case PARAM_LOWPASS:
+            param_lowpass_g = value;
+            break;
+
         default:
             break;
         }
@@ -432,6 +476,7 @@ protected:
         convolver_left_read->process((fftconvolver::Sample *)inL, (fftconvolver::Sample *)outL, frames);
         convolver_right_read->process((fftconvolver::Sample *)inR, (fftconvolver::Sample *)outR, frames);
 
+        // Filter and mix
         for (n = 0; n < frames; n++) {
             outL[n] = param_dry_lin * inL[n] + param_wet_lin * outL[n];
             outR[n] = param_dry_lin * inR[n] + param_wet_lin * outR[n];
@@ -477,6 +522,8 @@ private:
     float param_dry_lin;
     float param_wet_dB;
     float param_wet_lin;
+    float param_lowpass_g;
+    float param_highpass_g;
 
    /**
       Set our plugin class as non-copyable and add a leak detector just in case.

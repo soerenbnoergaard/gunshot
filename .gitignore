@@ -7,3 +7,4 @@ src/gunshot/test/out.wav
 *.so
 *.d
 *.log
+.ipynb_checkpoints
