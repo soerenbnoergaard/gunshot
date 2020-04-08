@@ -22,9 +22,22 @@
 #include "fftconvolver/Utilities.h"
 #include "samplerate.h"
 
-#define NUM_PARAMETERS 0
+#define NUM_PARAMETERS 2
 #define NUM_PROGRAMS 0
 #define NUM_STATES 1
+
+#define PARAM_DRY 0
+#define PARAM_WET 1
+
+
+float convert_dB_to_linear(float x_dB)
+{
+    if (x_dB < -59.0) {
+        return 0.0;
+    } else {
+        return pow(10.0, x_dB/20.0);
+    }
+}
 
 START_NAMESPACE_DISTRHO
 
@@ -141,6 +154,37 @@ protected:
     */
     void initParameter(uint32_t index, Parameter& parameter) override
     {
+        log_write("Call: initParameter()");
+        switch (index) {
+        case PARAM_DRY:
+            parameter.hints  = kParameterIsAutomable;
+            parameter.name   = "Dry";
+            parameter.symbol = "dry";
+            parameter.unit   = "dB";
+            parameter.ranges.def = -60.0f;
+            parameter.ranges.min = -60.0f;
+            parameter.ranges.max = 20.0f;
+
+            param_dry_dB = parameter.ranges.def;
+            param_dry_lin = convert_dB_to_linear(param_dry_dB);
+            break;
+
+        case PARAM_WET:
+            parameter.hints  = kParameterIsAutomable;
+            parameter.name   = "Wet";
+            parameter.symbol = "wet";
+            parameter.unit   = "dB";
+            parameter.ranges.def = 0.0f;
+            parameter.ranges.min = -60.0f;
+            parameter.ranges.max = 20.0f;
+
+            param_wet_dB = parameter.ranges.def;
+            param_wet_lin = convert_dB_to_linear(param_wet_dB);
+            break;
+
+        default:
+            break;
+        }
     }
 
     /**
@@ -203,6 +247,20 @@ protected:
     */
     float getParameterValue(uint32_t index) const override
     {
+        log_write("Call: getParameterValue()");
+        switch (index) {
+        case PARAM_DRY:
+            return param_dry_dB;
+            break;
+
+        case PARAM_WET:
+            return param_wet_dB;
+            break;
+
+        default:
+            return 0.0;
+            break;
+        }
     }
 
    /**
@@ -213,6 +271,25 @@ protected:
     */
     void setParameterValue(uint32_t index, float value) override
     {
+#ifdef GUNSHOT_LOG_FILE
+        log_write("Call: setParameterValue()");
+        char line[1024];
+        sprintf(line, "parameter[%d] = %f", index, value);
+        log_write(line);
+#endif
+
+        switch (index) {
+        case PARAM_DRY:
+            param_dry_dB = value;
+            param_dry_lin = convert_dB_to_linear(value);
+            break;
+        case PARAM_WET:
+            param_wet_dB = value;
+            param_wet_lin = convert_dB_to_linear(value);
+            break;
+        default:
+            break;
+        }
     }
 
     /**
@@ -331,6 +408,7 @@ protected:
     */
     void run(const float** inputs, float** outputs, uint32_t frames) override
     {
+        uint32_t n;
         const float* const inL = inputs[0];
         const float* const inR = inputs[1];
         float* outL = outputs[0];
@@ -353,6 +431,11 @@ protected:
         // Real-time audio processing
         convolver_left_read->process((fftconvolver::Sample *)inL, (fftconvolver::Sample *)outL, frames);
         convolver_right_read->process((fftconvolver::Sample *)inR, (fftconvolver::Sample *)outR, frames);
+
+        for (n = 0; n < frames; n++) {
+            outL[n] = param_dry_lin * inL[n] + param_wet_lin * outL[n];
+            outR[n] = param_dry_lin * inR[n] + param_wet_lin * outR[n];
+        }
     }
 
    /* --------------------------------------------------------------------------------------------------------
@@ -364,6 +447,7 @@ protected:
     */
     void sampleRateChanged(double newSampleRate) override
     {
+        newSampleRate = newSampleRate;
         update();
     }
 
@@ -388,6 +472,11 @@ private:
     fftconvolver::FFTConvolver *convolver_right_write;
 
     bool signal_swap_buffers;
+
+    float param_dry_dB;
+    float param_dry_lin;
+    float param_wet_dB;
+    float param_wet_lin;
 
    /**
       Set our plugin class as non-copyable and add a leak detector just in case.
