@@ -125,7 +125,7 @@ protected:
 
         // Clean up
         free(str);
-        plugin_state_reset(&state, true, false);
+        plugin_state_free(&state);
         error_message = "";
     }
 

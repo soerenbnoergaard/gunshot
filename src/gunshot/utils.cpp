@@ -22,9 +22,6 @@ int plugin_state_init(plugin_state_t *state, const char *filename)
     int n;
     AudioFile<float> ir;
 
-
-    plugin_state_reset(state, false, false);
-
     ok = ir.load(filename);
     if (!ok) {
         log_write("Error loading impulse response from file");
@@ -89,36 +86,35 @@ int plugin_state_init(plugin_state_t *state, const char *filename)
     return 0;
 }
 
-int plugin_state_reset(plugin_state_t *state, bool free_buffers, bool dirac_impulse_response)
+int plugin_state_init_dirac(plugin_state_t *state, uint32_t sample_rate_Hz)
 {
-    if (free_buffers) {
-        free(state->ir_left);
-        free(state->ir_right);
-    }
-
     state->ir_left = NULL;
     state->ir_right = NULL;
 
-    if (dirac_impulse_response) {
-        state->ir_left = (float *)malloc(1);
-        if (state->ir_left == NULL) {
-            return 1;
-        }
-        state->ir_right = (float *)malloc(1);
-        if (state->ir_right == NULL) {
-            return 1;
-        }
-        state->ir_left[0] = 1.0;
-        state->ir_right[0] = 1.0;
+    state->ir_left = (float *)malloc(1 * sizeof(float));
+    if (state->ir_left == NULL) {
+        return 1;
     }
+    state->ir_right = (float *)malloc(1 * sizeof(float));
+    if (state->ir_right == NULL) {
+        return 1;
+    }
+    state->ir_left[0] = 1.0;
+    state->ir_right[0] = 1.0;
 
     state->ir_num_samples_per_channel = 1;
     state->ir_num_channels = 2;
-    state->ir_sample_rate_Hz = 1;
+    state->ir_sample_rate_Hz = sample_rate_Hz;
     state->ir_bit_depth = 24;
     state->fft_block_size = FFT_BLOCK_SIZE;
 
     return 0;
+}
+
+int plugin_state_free(plugin_state_t *state)
+{
+    free(state->ir_left);
+    free(state->ir_right);
 }
 
 #define MASK0(x) ((( *(uint32_t*) (&x) ) >>  0) & 0xff)
