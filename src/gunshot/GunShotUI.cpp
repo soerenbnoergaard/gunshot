@@ -38,6 +38,7 @@ public:
     {
         fFont = createFontFromMemory("sans", dejavusans_ttf, dejavusans_ttf_length, false);
         error_message = "";
+        filebrowser_start_dir = String();
     }
 
 protected:
@@ -90,6 +91,41 @@ protected:
         closePath();
     }
 
+    void setStartDirFromFileName(const char *filename)
+    {
+        int32_t n;
+        int32_t last = 0;
+
+#ifdef DISTRHO_OS_WINDOWS
+        char sep = '\\';
+#else
+        char sep = '/';
+#endif
+
+        // Find last directory separator
+        for (n = strlen(filename)-1; n >= 0; n--) {
+            if (filename[n] == sep) {
+                last = n;
+                break;
+            }
+        }
+
+        if (last <= 0) {
+            return;
+        }
+
+        char *tmp = (char *)malloc(sizeof(char)*last + 1);
+        if (tmp == NULL) {
+            return;
+        }
+
+        memcpy(tmp, filename, sizeof(char)*last);
+        tmp[last] = '\0';
+
+        filebrowser_start_dir = String(tmp);
+        free(tmp);
+    }
+
     /**
       File browser selected function.
     */
@@ -102,6 +138,9 @@ protected:
         if (filename == nullptr) {
             return;
         }
+
+        // Set the startup directory for next time.
+        setStartDirFromFileName(filename);
 
         // Load impulse response file
         err = plugin_state_init(&state, filename);
@@ -146,6 +185,9 @@ protected:
 
             Window& w = getParentWindow();
             Window::FileBrowserOptions o;
+            o.startDir = filebrowser_start_dir;
+            o.title = "Select impulse response";
+            o.buttons.showPlaces = 2;
             w.openFileBrowser(o);
         }
 
@@ -157,6 +199,7 @@ protected:
 private:
     FontId fFont;
     String error_message;
+    String filebrowser_start_dir;
 
    /**
       Set our UI class as non-copyable and add a leak detector just in case.
