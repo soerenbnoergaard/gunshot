@@ -15,6 +15,7 @@
  */
 
 #include "DistrhoPlugin.hpp"
+#include "extra/Thread.hpp"
 
 #include "utils.h"
 #include "fftconvolver/FFTConvolver.h"
@@ -26,6 +27,112 @@
 #define NUM_STATES 1
 
 START_NAMESPACE_DISTRHO
+
+// Class prototypes
+class GunShotPlugin;
+class UpdateThread;
+
+// -----------------------------------------------------------------------------------------------------------
+
+class UpdateThread : Thread
+{
+public:
+    UpdateThread() : Thread("UpdateThread")
+    {
+    }
+
+    ~UpdateThread()
+    {
+    }
+
+    void run() override
+    {
+        uint32_t n;
+        uint32_t err;
+        static SRC_DATA src_data_left;
+        static SRC_DATA src_data_right;
+
+        // Sample rate convert left channel
+        src_data_left.data_in  = state->ir_left;
+        src_data_right.data_in = state->ir_right;
+
+        src_data_left.src_ratio  = sample_rate_Hz / state->ir_sample_rate_Hz;
+        src_data_right.src_ratio = sample_rate_Hz / state->ir_sample_rate_Hz;
+
+        src_data_left.input_frames  = state->ir_num_samples_per_channel;
+        src_data_right.input_frames = state->ir_num_samples_per_channel;
+
+        src_data_left.output_frames  = (uint32_t)(src_data_left.src_ratio  * state->ir_num_samples_per_channel) + 1;
+        src_data_right.output_frames = (uint32_t)(src_data_right.src_ratio * state->ir_num_samples_per_channel) + 1;
+
+        src_data_left.data_out  = nullptr;
+        src_data_right.data_out = nullptr;
+
+        src_data_left.data_out  = (float *)malloc(sizeof(float) * src_data_left.output_frames);
+        src_data_right.data_out = (float *)malloc(sizeof(float) * src_data_right.output_frames);
+
+        if (src_data_left.data_out == nullptr) {
+            return;
+        }
+        if (src_data_right.data_out == nullptr) {
+            return;
+        }
+
+        err = src_simple(&src_data_left, SRC_SINC_BEST_QUALITY, 1);
+        if (err) {
+            return;
+        }
+        err = src_simple(&src_data_right, SRC_SINC_BEST_QUALITY, 1);
+        if (err) {
+            return;
+        }
+
+        // Increasing the sample rate also increases the amplitude so the
+        // impulse response is scaled down before initializing the
+        // convolver.
+        for (n = 0; n < src_data_left.output_frames_gen; n++) {
+            src_data_left.data_out[n] /= src_data_left.src_ratio;
+            src_data_right.data_out[n] /= src_data_right.src_ratio;
+        }
+
+        // Load impulse reponse into convolver
+        convolver_left->init(state->fft_block_size, (fftconvolver::Sample *)src_data_left.data_out, src_data_left.output_frames_gen);
+        convolver_right->init(state->fft_block_size, (fftconvolver::Sample *)src_data_right.data_out, src_data_right.output_frames_gen);
+
+        free(src_data_left.data_out);
+        free(src_data_right.data_out);
+
+        // Signal to the real time engine that the buffers are ready to be swapped.
+        *signal_swap_buffers = true;
+    }
+
+    void setup(float this_sample_rate_Hz, plugin_state_t *this_state, bool *this_signal_swap_buffers, 
+             fftconvolver::FFTConvolver *this_convolver_left,
+             fftconvolver::FFTConvolver *this_convolver_right)
+    {
+        log_write("Thread setup");
+        // Copy input and output references so they are ready to run
+        sample_rate_Hz = this_sample_rate_Hz;
+        state = this_state;
+        signal_swap_buffers = this_signal_swap_buffers;
+        convolver_left = this_convolver_left;
+        convolver_right = this_convolver_right;
+    }
+
+    void start()
+    {
+        log_write("Thread start");
+        startThread();
+    }
+
+private:
+    // Input and output pointers
+    float sample_rate_Hz;
+    plugin_state_t *state;
+    bool *signal_swap_buffers;
+    fftconvolver::FFTConvolver *convolver_left;
+    fftconvolver::FFTConvolver *convolver_right;
+};
 
 // -----------------------------------------------------------------------------------------------------------
 
@@ -50,10 +157,10 @@ public:
         convolver_right_read = &convolver_right_2;
 
         signal_swap_buffers = false;
-        signal_update = false;
+        update_thread = new UpdateThread();
 
 #ifdef GUNSHOT_LOG_FILE
-        log_init();
+        // log_init();
         log_write("Log started");
 #endif
         sampleRateChanged(getSampleRate());
@@ -66,6 +173,7 @@ public:
         convolver_left_2.reset();
         convolver_right_1.reset();
         convolver_right_2.reset();
+        delete update_thread;
     }
 
 protected:
@@ -257,63 +365,16 @@ protected:
     */
     void update(void)
     {
-        uint32_t n;
-        uint32_t err;
-        static SRC_DATA src_data_left;
-        static SRC_DATA src_data_right;
+        // 
+        update_thread->setup(getSampleRate(),
+                             &state,
+                             &signal_swap_buffers, 
+                             convolver_left_write,
+                             convolver_right_write);
 
-        // Sample rate convert left channel
-        src_data_left.data_in  = state.ir_left;
-        src_data_right.data_in = state.ir_right;
-
-        src_data_left.src_ratio  = getSampleRate()/state.ir_sample_rate_Hz;
-        src_data_right.src_ratio = getSampleRate()/state.ir_sample_rate_Hz;
-
-        src_data_left.input_frames  = state.ir_num_samples_per_channel;
-        src_data_right.input_frames = state.ir_num_samples_per_channel;
-
-        src_data_left.output_frames  = (uint32_t)(src_data_left.src_ratio  * state.ir_num_samples_per_channel) + 1;
-        src_data_right.output_frames = (uint32_t)(src_data_right.src_ratio * state.ir_num_samples_per_channel) + 1;
-
-        src_data_left.data_out  = nullptr;
-        src_data_right.data_out = nullptr;
-
-        src_data_left.data_out  = (float *)malloc(sizeof(float) * src_data_left.output_frames);
-        src_data_right.data_out = (float *)malloc(sizeof(float) * src_data_right.output_frames);
-
-        if (src_data_left.data_out == nullptr) {
-            return;
-        }
-        if (src_data_right.data_out == nullptr) {
-            return;
-        }
-
-        err = src_simple(&src_data_left, SRC_SINC_BEST_QUALITY, 1);
-        if (err) {
-            return;
-        }
-        err = src_simple(&src_data_right, SRC_SINC_BEST_QUALITY, 1);
-        if (err) {
-            return;
-        }
-
-        // Increasing the sample rate also increases the amplitude so the
-        // impulse response is scaled down before initializing the
-        // convolver.
-        for (n = 0; n < src_data_left.output_frames_gen; n++) {
-            src_data_left.data_out[n] /= src_data_left.src_ratio;
-            src_data_right.data_out[n] /= src_data_right.src_ratio;
-        }
-
-        // Load impulse reponse into convolver
-        convolver_left_write->init(state.fft_block_size, (fftconvolver::Sample *)src_data_left.data_out, src_data_left.output_frames_gen);
-        convolver_right_write->init(state.fft_block_size, (fftconvolver::Sample *)src_data_right.data_out, src_data_right.output_frames_gen);
-
-        free(src_data_left.data_out);
-        free(src_data_right.data_out);
-
-        // Signal to the real time engine that the buffers are ready to be swapped.
-        signal_swap_buffers = true;
+        // Start a thread. When this finishes, the `signal_swap_buffers` flag will be set.
+        update_thread->start();
+        // update_thread->run();
     }
 
    /**
@@ -328,6 +389,8 @@ protected:
         float* outR = outputs[1];
 
         if (signal_swap_buffers) {
+            signal_swap_buffers = false;
+
             fftconvolver::FFTConvolver *tmp;
 
             tmp = convolver_left_read;
@@ -337,8 +400,6 @@ protected:
             tmp = convolver_right_read;
             convolver_right_read = convolver_right_write;
             convolver_right_write = tmp;
-
-            signal_swap_buffers = false;
         }
 
         // Real-time audio processing
@@ -379,7 +440,9 @@ private:
     fftconvolver::FFTConvolver *convolver_right_write;
 
     bool signal_swap_buffers;
-    bool signal_update;
+
+    UpdateThread *update_thread;
+    friend class UpdateThread;
 
    /**
       Set our plugin class as non-copyable and add a leak detector just in case.
