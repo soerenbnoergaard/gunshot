@@ -1,7 +1,9 @@
-#include "utils.h"
-#include <math.h>
+#include "plugin_state.hpp"
+#include "log.h"
+
 #include <assert.h>
 #include <string.h>
+#include <math.h>
 
 #include "audiofile/AudioFile.h"
 extern "C" {
@@ -9,12 +11,6 @@ extern "C" {
 }
 
 #define FFT_BLOCK_SIZE 1024
-
-#ifdef GUNSHOT_LOG_FILE
-static char line[1024];
-#endif
-
-////////////////////////////////////////////////////////////////////////////////
 
 int plugin_state_init(plugin_state_t *state, const char *filename)
 {
@@ -277,84 +273,4 @@ int plugin_state_deserialize(plugin_state_t *state, char *input, uint32_t length
     // Clean up
     free(x);
     return 0;
-}
-
-int log_init(void)
-{
-#ifdef GUNSHOT_LOG_FILE
-    FILE *f = fopen(GUNSHOT_LOG_FILE, "w");
-    if (f == NULL) {
-        return 1;
-    }
-    fclose(f);
-#endif
-    return 0;
-}
-
-int log_write(const char *s)
-{
-#ifdef GUNSHOT_LOG_FILE
-    FILE *f = fopen(GUNSHOT_LOG_FILE, "a");
-    if (f == NULL) {
-        return 1;
-    }
-    fprintf(f, "%s\n", s);
-    fclose(f);
-#endif
-    return 0;
-}
-
-static biquad_t _biquad_calculate_generic(float cutoff_Hz, float sample_rate_Hz, bool is_low_pass)
-{
-    // Apogee Filter Design Equations
-    float Q = 0.707;
-    float wc = 2.0*M_PI * cutoff_Hz/sample_rate_Hz;
-    float wS = sin(wc);
-    float wC = cos(wc);
-    float alpha = wS/(2.0*Q);
-    biquad_t s;
-
-    s.a[0] = 1.0+alpha;
-    s.a[1] = -2.0*wC;
-    s.a[2] = 1.0-alpha;
-    
-    if (is_low_pass) {
-        s.b[0] = (1.0-wC)/2.0;
-        s.b[1] = 1.0-wC;
-        s.b[2] = s.b[0];
-    }
-    else {
-        s.b[0] = (1.0+wC)/2.0;
-        s.b[1] = -(1.0+wC);
-        s.b[2] = s.b[0];
-    }
-
-    s.x[0] = 0.0;
-    s.x[1] = 0.0;
-    s.x[2] = 0.0;
-
-    s.y[0] = 0.0;
-    s.y[1] = 0.0;
-    s.y[2] = 0.0;
-
-    return s;
-}
-
-biquad_t biquad_calculate_highpass(float cutoff_Hz, float sample_rate_Hz)
-{
-    return _biquad_calculate_generic(cutoff_Hz, sample_rate_Hz, false);
-}
-
-biquad_t biquad_calculate_lowpass(float cutoff_Hz, float sample_rate_Hz)
-{
-    return _biquad_calculate_generic(cutoff_Hz, sample_rate_Hz, true);
-}
-
-float convert_dB_to_linear(float x_dB)
-{
-    if (x_dB < -59.0) {
-        return 0.0;
-    } else {
-        return pow(10.0, x_dB/20.0);
-    }
 }

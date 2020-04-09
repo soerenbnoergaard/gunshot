@@ -14,14 +14,18 @@ NAME = gunshot
 
 FILES_DSP = \
 	GunShot.cpp \
-	utils.cpp \
+	plugin_state.cpp \
+	log.c \
+	biquad.c \
+	utils.c \
 	$(wildcard ../../fftconvolver/*.cpp) \
 	../../base64/base64.c \
 	$(wildcard ../../libsamplerate/src/*.c)
 
 FILES_UI  = \
 	GunShotUI.cpp \
-	utils.cpp \
+	plugin_state.cpp \
+	log.c \
 	../../base64/base64.c
 
 # --------------------------------------------------------------

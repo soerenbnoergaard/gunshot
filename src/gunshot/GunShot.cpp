@@ -18,6 +18,10 @@
 #include "extra/Thread.hpp"
 
 #include "utils.h"
+#include "log.h"
+#include "biquad.h"
+#include "plugin_state.hpp"
+
 #include "fftconvolver/FFTConvolver.h"
 #include "fftconvolver/Utilities.h"
 #include "samplerate.h"

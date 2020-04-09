@@ -17,7 +17,10 @@
 #include "DistrhoUI.hpp"
 #include "Window.hpp"
 #include "extra/String.hpp"
+
+#include "log.h"
 #include "utils.h"
+#include "plugin_state.hpp"
 #include "dejavu-fonts/DejaVuSans.ttf.h"
 
 #define MAX_PATH_LENGTH 2048
