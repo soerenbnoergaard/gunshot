@@ -1,8 +1,5 @@
 #include "log.h"
-
-#ifdef GUNSHOT_LOG_FILE
-static char line[1024];
-#endif
+#include <stdio.h>
 
 int log_init(void)
 {

@@ -12,6 +12,10 @@ extern "C" {
 
 #define FFT_BLOCK_SIZE 1024
 
+#ifdef GUNSHOT_LOG_FILE
+static char line[1024];
+#endif
+
 int plugin_state_init(plugin_state_t *state, const char *filename)
 {
     bool ok;

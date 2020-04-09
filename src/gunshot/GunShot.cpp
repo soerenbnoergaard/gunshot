@@ -183,12 +183,20 @@ protected:
             parameter.name   = "High pass";
             parameter.symbol = "highpass";
             parameter.unit   = "Hz";
-            parameter.ranges.def = 2.0f;
-            parameter.ranges.min = 2.0f;
-            parameter.ranges.max = 20000.0f;
+            parameter.ranges.def = BIQUAD_MIN_Hz - 1.0;
+            parameter.ranges.min = BIQUAD_MIN_Hz - 1.0;
+            parameter.ranges.max = 1000.0f;
 
             param_highpass_Hz = parameter.ranges.def;
-            param_highpass_data = biquad_calculate_highpass(param_highpass_Hz, getSampleRate());
+
+            if (param_highpass_Hz < BIQUAD_MIN_Hz) {
+                param_highpass_data_left = biquad_calculate_nofilter(true);
+            }
+            else {
+                param_highpass_data_left = biquad_calculate_highpass(param_highpass_Hz, getSampleRate(), true);
+            }
+
+            param_highpass_data_right = param_highpass_data_left;
             break;
 
         case PARAM_LOWPASS:
@@ -196,12 +204,20 @@ protected:
             parameter.name   = "Low pass";
             parameter.symbol = "lowpass";
             parameter.unit   = "Hz";
-            parameter.ranges.def = 20000.0f;
-            parameter.ranges.min = 2.0f;
-            parameter.ranges.max = 20000.0f;
+            parameter.ranges.def = BIQUAD_MAX_Hz + 1.0;
+            parameter.ranges.min = 200.0f;
+            parameter.ranges.max = BIQUAD_MAX_Hz + 1.0;
 
             param_lowpass_Hz = parameter.ranges.def;
-            param_lowpass_data = biquad_calculate_lowpass(param_lowpass_Hz, getSampleRate());
+
+            if (param_lowpass_Hz > BIQUAD_MAX_Hz) {
+                param_lowpass_data_left = biquad_calculate_nofilter(true);
+            }
+            else {
+                param_lowpass_data_left = biquad_calculate_lowpass(param_lowpass_Hz, getSampleRate(), true);
+            }
+
+            param_lowpass_data_right = param_lowpass_data_left;
             break;
 
         default:
@@ -321,12 +337,28 @@ protected:
 
         case PARAM_HIGHPASS:
             param_highpass_Hz = value;
-            param_highpass_data = biquad_calculate_highpass(value, getSampleRate());
+
+            if (param_highpass_Hz < BIQUAD_MIN_Hz) {
+                param_highpass_data_left = biquad_calculate_nofilter(false);
+            }
+            else {
+                param_highpass_data_left = biquad_calculate_highpass(param_highpass_Hz, getSampleRate(), false);
+            }
+
+            param_highpass_data_right = param_highpass_data_left;
             break;
 
         case PARAM_LOWPASS:
             param_lowpass_Hz = value;
-            param_highpass_data = biquad_calculate_lowpass(value, getSampleRate());
+
+            if (param_lowpass_Hz > BIQUAD_MAX_Hz) {
+                param_lowpass_data_left = biquad_calculate_nofilter(false);
+            }
+            else {
+                param_lowpass_data_left = biquad_calculate_lowpass(param_lowpass_Hz, getSampleRate(), false);
+            }
+
+            param_lowpass_data_right = param_lowpass_data_left;
             break;
 
         default:
@@ -476,6 +508,15 @@ protected:
 
         // Filter and mix
         for (n = 0; n < frames; n++) {
+            // High-pass filter
+            outL[n] = biquad_process_sample(&param_highpass_data_left,  outL[n]);
+            outR[n] = biquad_process_sample(&param_highpass_data_right, outR[n]);
+
+            // Low-pass filter
+            outL[n] = biquad_process_sample(&param_lowpass_data_left,  outL[n]);
+            outR[n] = biquad_process_sample(&param_lowpass_data_right, outR[n]);
+
+            // Mix with dry signal
             outL[n] = param_dry_lin * inL[n] + param_wet_lin * outL[n];
             outR[n] = param_dry_lin * inR[n] + param_wet_lin * outR[n];
         }
@@ -525,10 +566,12 @@ private:
     float param_wet_lin;
 
     float param_highpass_Hz;
-    biquad_t param_highpass_data;
+    biquad_t param_highpass_data_left;
+    biquad_t param_highpass_data_right;
 
     float param_lowpass_Hz;
-    biquad_t param_lowpass_data;
+    biquad_t param_lowpass_data_left;
+    biquad_t param_lowpass_data_right;
 
    /**
       Set our plugin class as non-copyable and add a leak detector just in case.
