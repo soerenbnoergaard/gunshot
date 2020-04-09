@@ -31,16 +31,6 @@
 #define PARAM_HIGHPASS 2
 #define PARAM_LOWPASS 3
 
-
-float convert_dB_to_linear(float x_dB)
-{
-    if (x_dB < -59.0) {
-        return 0.0;
-    } else {
-        return pow(10.0, x_dB/20.0);
-    }
-}
-
 START_NAMESPACE_DISTRHO
 
 // -----------------------------------------------------------------------------------------------------------
@@ -189,11 +179,12 @@ protected:
             parameter.name   = "High pass";
             parameter.symbol = "highpass";
             parameter.unit   = "Hz";
-            parameter.ranges.def = 0.02f;
-            parameter.ranges.min = 0.02f;
-            parameter.ranges.max = 0.99f;
+            parameter.ranges.def = 2.0f;
+            parameter.ranges.min = 2.0f;
+            parameter.ranges.max = 20000.0f;
 
-            param_highpass_g = parameter.ranges.def;
+            param_highpass_Hz = parameter.ranges.def;
+            param_highpass_data = biquad_calculate_highpass(param_highpass_Hz, getSampleRate());
             break;
 
         case PARAM_LOWPASS:
@@ -201,11 +192,12 @@ protected:
             parameter.name   = "Low pass";
             parameter.symbol = "lowpass";
             parameter.unit   = "Hz";
-            parameter.ranges.def = 0.99f;
-            parameter.ranges.min = 0.02f;
-            parameter.ranges.max = 0.99f;
+            parameter.ranges.def = 20000.0f;
+            parameter.ranges.min = 2.0f;
+            parameter.ranges.max = 20000.0f;
 
-            param_lowpass_g = parameter.ranges.def;
+            param_lowpass_Hz = parameter.ranges.def;
+            param_lowpass_data = biquad_calculate_lowpass(param_lowpass_Hz, getSampleRate());
             break;
 
         default:
@@ -284,11 +276,11 @@ protected:
             break;
 
         case PARAM_HIGHPASS:
-            return param_highpass_g;
+            return param_highpass_Hz;
             break;
 
         case PARAM_LOWPASS:
-            return param_lowpass_g;
+            return param_lowpass_Hz;
             break;
 
         default:
@@ -324,11 +316,13 @@ protected:
             break;
 
         case PARAM_HIGHPASS:
-            param_highpass_g = value;
+            param_highpass_Hz = value;
+            param_highpass_data = biquad_calculate_highpass(value, getSampleRate());
             break;
 
         case PARAM_LOWPASS:
-            param_lowpass_g = value;
+            param_lowpass_Hz = value;
+            param_highpass_data = biquad_calculate_lowpass(value, getSampleRate());
             break;
 
         default:
@@ -492,6 +486,8 @@ protected:
     */
     void sampleRateChanged(double newSampleRate) override
     {
+        // FIXME: Should the filter coefficients be updated? Or will the
+        // parameters automatically be reset?
         newSampleRate = newSampleRate;
         update();
     }
@@ -520,10 +516,15 @@ private:
 
     float param_dry_dB;
     float param_dry_lin;
+
     float param_wet_dB;
     float param_wet_lin;
-    float param_lowpass_g;
-    float param_highpass_g;
+
+    float param_highpass_Hz;
+    biquad_t param_highpass_data;
+
+    float param_lowpass_Hz;
+    biquad_t param_lowpass_data;
 
    /**
       Set our plugin class as non-copyable and add a leak detector just in case.
