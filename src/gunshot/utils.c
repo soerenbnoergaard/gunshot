@@ -1,5 +1,6 @@
 #include "utils.h"
 #include <math.h>
+#include <string.h>
 
 float convert_dB_to_linear(float x_dB)
 {

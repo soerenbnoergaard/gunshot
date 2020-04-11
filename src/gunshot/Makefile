@@ -36,8 +36,8 @@ include ../../dpf/Makefile.plugins.mk
 
 # --------------------------------------------------------------
 # Set include paths
-BUILD_C_FLAGS += -DPACKAGE='"libsamplerate"' -DVERSION='"0.1.9"' -DCPU_CLIPS_POSITIVE=0 -DCPU_CLIPS_NEGATIVE=0
-BUILD_CXX_FLAGS += -I ../../ -I ../../libsamplerate/src
+BUILD_C_FLAGS += -DPACKAGE='"libsamplerate"' -DVERSION='"0.1.9"' -DCPU_CLIPS_POSITIVE=0 -DCPU_CLIPS_NEGATIVE=0 -lm
+BUILD_CXX_FLAGS += -I ../../ -I ../../libsamplerate/src -lm
 LINK_FLAGS += $(FONT_OBJECTS) -pthread -lm
 
 # --------------------------------------------------------------

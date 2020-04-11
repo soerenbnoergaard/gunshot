@@ -508,6 +508,7 @@ protected:
 
         // Filter and mix
         for (n = 0; n < frames; n++) {
+
             // High-pass filter
             outL[n] = biquad_process_sample(&param_highpass_data_left,  outL[n]);
             outR[n] = biquad_process_sample(&param_highpass_data_right, outR[n]);
