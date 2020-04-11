@@ -26,6 +26,7 @@ FILES_UI  = \
 	GunShotUI.cpp \
 	plugin_state.cpp \
 	log.c \
+	utils.c \
 	../../base64/base64.c
 
 # --------------------------------------------------------------

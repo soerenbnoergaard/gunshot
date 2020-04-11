@@ -8,6 +8,7 @@ extern "C" {
 #include <stdint.h>
 
 float convert_dB_to_linear(float x_dB);
+uint32_t find_basename(const char *abspath);
 
 #ifdef __cplusplus
 }

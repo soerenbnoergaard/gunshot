@@ -37,7 +37,7 @@ using DGL_NAMESPACE::Rectangle;
 class GunShotUI : public UI
 {
 public:
-    GunShotUI() : UI(512, 128)
+    GunShotUI() : UI(800, 120)
     {
         fFont = createFontFromMemory("sans", dejavusans_ttf, dejavusans_ttf_length, false);
         error_message = "";
@@ -59,6 +59,19 @@ protected:
     */
     void stateChanged(const char* key, const char* value) override
     {
+        int err;
+        plugin_state_t state;
+
+        if (std::strcmp(key, "state") == 0) {
+            err = plugin_state_deserialize(&state, (char *)value, std::strlen(value));
+            if (err) {
+                log_write("Error deserializing state in UI");
+                return;
+            }
+
+            shown_filename = String(state.filename);
+        }
+
         repaint();
     }
 
@@ -80,9 +93,10 @@ protected:
         fill();
         closePath();
 
-        drawCenter(h/2 - l, "GUNSHOT CONVOLVER", 0xff, 0x00, 0x00);
-        drawCenter(h/2 + 0, "Click to load impulse response", 0xff, 0xff, 0xff);
-        drawCenter(h/2 + l,  error_message, 0xff, 0xff, 0x00);
+        drawCenter(h/2 - 1.5*l, "GUNSHOT CONVOLVER", 0xff, 0x00, 0x00);
+        drawCenter(h/2 - 0.5*l,  shown_filename, 0xff, 0xff, 0xff);
+        drawCenter(h/2 + 0.5*l, "Click to load impulse response", 0x99, 0x99, 0x99);
+        drawCenter(h/2 + 1.5*l,  error_message, 0xff, 0xff, 0x00);
     }
 
     void drawCenter(const float y, const char* const s, uint8_t r, uint8_t g, uint8_t b)
@@ -164,11 +178,14 @@ protected:
             return;
         }
         setState("state", String(str));
+        shown_filename = String((char *)(filename + find_basename(filename)));
 
         // Clean up
         free(str);
         plugin_state_free(&state);
         error_message = "";
+
+        repaint();
     }
 
    /**
@@ -202,6 +219,7 @@ protected:
 private:
     FontId fFont;
     String error_message;
+    String shown_filename;
     String filebrowser_start_dir;
 
    /**

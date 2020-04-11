@@ -4,12 +4,23 @@
 #include <stdint.h>
 
 // Plugin state ////////////////////////////////////////////////////////////////
+
+#define PLUGIN_STATE_VERSION 2
+#define PLUGIN_STATE_FILENAME_LENGTH 1024
+
+// The plugin state version is stored from version 2 and onwards.
+// This makes it possible to have backwards compatible plugin states.
+// Unfortunately, this was not included in the first version, so this is
+// incompatible with any newer version (which will break DAW presets/projects).
+
 typedef struct {
+    uint32_t version;
     uint32_t ir_sample_rate_Hz;
     uint32_t ir_num_channels;
     uint32_t ir_num_samples_per_channel;
     uint32_t ir_bit_depth;
     uint32_t fft_block_size;
+    char filename[PLUGIN_STATE_FILENAME_LENGTH];
     float *ir_left;
     float *ir_right;
 } plugin_state_t;
