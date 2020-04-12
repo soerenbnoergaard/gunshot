@@ -19,6 +19,7 @@ FILES_DSP = \
 	biquad.c \
 	utils.c \
 	convolver.cpp \
+	cp1252.cpp \
 	$(wildcard ../../fftconvolver/*.cpp) \
 	../../base64/base64.c \
 	$(wildcard ../../libsamplerate/src/*.c)

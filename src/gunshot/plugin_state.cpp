@@ -1,6 +1,8 @@
 #include "plugin_state.hpp"
 #include "log.h"
 #include "utils.h"
+#include "DistrhoDefines.h"
+#include "cp1252.hpp"
 
 #include <assert.h>
 #include <string.h>
@@ -23,12 +25,14 @@ int plugin_state_init(plugin_state_t *state, const char *filename)
     int n;
     AudioFile<float> ir;
 
-#ifdef GUNSHOT_LOG_FILE
-    sprintf(line, "Loading file: %s", filename);
-    log_write(line);
+#ifdef DISTRHO_OS_WINDOWS
+    // Convert file encoding from UTF-8 to CP-1252 on Windows.
+    std::string filename_enc = cp1252_from_utf8(std::string(filename));
+#else
+    std::string filename_enc = std::string(filename);
 #endif
 
-    ok = ir.load(filename);
+    ok = ir.load(filename_enc);
     if (!ok) {
         log_write("Error loading impulse response from file");
         return 1;
