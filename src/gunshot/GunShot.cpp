@@ -53,14 +53,6 @@ public:
             throw "Could not reset state";
         }
 
-        convolver_left_write = &convolver_left_1;
-        convolver_left_read = &convolver_left_2;
-
-        convolver_right_write = &convolver_right_1;
-        convolver_right_read = &convolver_right_2;
-
-        signal_swap_buffers = false;
-
 #ifdef GUNSHOT_LOG_FILE
         // log_init();
         log_write("Call: GunShotPlugin()");
@@ -71,10 +63,8 @@ public:
     ~GunShotPlugin() override
     {
         plugin_state_free(&state);
-        convolver_left_1.reset();
-        convolver_left_2.reset();
-        convolver_right_1.reset();
-        convolver_right_2.reset();
+        convolver_left.reset();
+        convolver_right.reset();
     }
 
 protected:
@@ -472,14 +462,11 @@ protected:
         uint32_t fft_block_size_tail = fft_block_size_head > 8192 ? fft_block_size_head : 8192;
 
         // Load impulse reponse into convolver
-        convolver_left_write->init(fft_block_size_head, (fftconvolver::Sample *)src_data_left.data_out, src_data_left.output_frames_gen);
-        convolver_right_write->init(fft_block_size_head, (fftconvolver::Sample *)src_data_right.data_out, src_data_right.output_frames_gen);
+        convolver_left.init(fft_block_size_head, (fftconvolver::Sample *)src_data_left.data_out, src_data_left.output_frames_gen);
+        convolver_right.init(fft_block_size_head, (fftconvolver::Sample *)src_data_right.data_out, src_data_right.output_frames_gen);
 
         free(src_data_left.data_out);
         free(src_data_right.data_out);
-
-        // Signal to the real time engine that the buffers are ready to be swapped.
-        signal_swap_buffers = true;
     }
 
    /**
@@ -494,23 +481,9 @@ protected:
         float* outL = outputs[0];
         float* outR = outputs[1];
 
-        if (signal_swap_buffers) {
-            signal_swap_buffers = false;
-
-            fftconvolver::FFTConvolver *tmp;
-
-            tmp = convolver_left_read;
-            convolver_left_read = convolver_left_write;
-            convolver_left_write = tmp;
-
-            tmp = convolver_right_read;
-            convolver_right_read = convolver_right_write;
-            convolver_right_write = tmp;
-        }
-
         // Real-time audio processing
-        convolver_left_read->process((fftconvolver::Sample *)inL, (fftconvolver::Sample *)outL, frames);
-        convolver_right_read->process((fftconvolver::Sample *)inR, (fftconvolver::Sample *)outR, frames);
+        convolver_left.process((fftconvolver::Sample *)inL, (fftconvolver::Sample *)outL, frames);
+        convolver_right.process((fftconvolver::Sample *)inR, (fftconvolver::Sample *)outR, frames);
 
         // Filter and mix
         for (n = 0; n < frames; n++) {
@@ -551,20 +524,8 @@ private:
     plugin_state_t state;
     String state_cache; // Serialized version of `state` which can be quickly returned in `getState()`.
 
-    // Convolution engines.
-    // These are double buffered so one can be updated in non-real-time while
-    // the other is being used in real-time.
-    fftconvolver::FFTConvolver convolver_left_1;
-    fftconvolver::FFTConvolver convolver_left_2;
-    fftconvolver::FFTConvolver *convolver_left_read;
-    fftconvolver::FFTConvolver *convolver_left_write;
-
-    fftconvolver::FFTConvolver convolver_right_1;
-    fftconvolver::FFTConvolver convolver_right_2;
-    fftconvolver::FFTConvolver *convolver_right_read;
-    fftconvolver::FFTConvolver *convolver_right_write;
-
-    bool signal_swap_buffers;
+    fftconvolver::FFTConvolver convolver_left;
+    fftconvolver::FFTConvolver convolver_right;
 
     float param_dry_dB;
     float param_dry_lin;
