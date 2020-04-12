@@ -15,7 +15,7 @@ Convolution VST plugin with low resource usage and minimalistic user interface. 
 
 Bitwig on Linux:
 
-![Bitwig on Linux](https://github.com/soerenbnoergaard/gunshot/doc/screenshot_linux_bitwig.png)
+![Bitwig on Linux](https://soerenbnoergaard.github.com/gunshot/doc/screenshot_linux_bitwig.png)
 
 ## Libraries and Resources
 
