@@ -4,6 +4,10 @@
 
 The version number is found in `GunShot.cpp` and should be update in the commit containing the release.
 
+## Disable logging
+
+The `GUNSHOT_LOG_FILE` must not be defined in `log.h`.
+
 ## Tag the release
 
 To tag and push version `X.Y.Z`, run the following commands:

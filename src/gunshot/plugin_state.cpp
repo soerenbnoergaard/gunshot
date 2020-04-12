@@ -23,6 +23,11 @@ int plugin_state_init(plugin_state_t *state, const char *filename)
     int n;
     AudioFile<float> ir;
 
+#ifdef GUNSHOT_LOG_FILE
+    sprintf(line, "Loading file: %s", filename);
+    log_write(line);
+#endif
+
     ok = ir.load(filename);
     if (!ok) {
         log_write("Error loading impulse response from file");

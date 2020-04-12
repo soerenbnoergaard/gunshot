@@ -1,4 +1,6 @@
 #include "utils.h"
+#include "DistrhoDefines.h"
+#include "log.h"
 #include <math.h>
 #include <string.h>
 
@@ -16,8 +18,10 @@ uint32_t find_basename(const char *abspath)
     int32_t n;
 
 #ifdef DISTRHO_OS_WINDOWS
+    log_write("Detected Windows");
     char sep = '\\';
 #else
+    log_write("Detected non-Windows");
     char sep = '/';
 #endif
 

@@ -15,6 +15,7 @@
  */
 
 #include "DistrhoUI.hpp"
+#include "DistrhoDefines.h"
 #include "Window.hpp"
 #include "extra/String.hpp"
 
@@ -160,6 +161,7 @@ protected:
         setStartDirFromFileName(filename);
 
         // Load impulse response file
+        log_write(String("File loaded from UI: ") + String(filename));
         err = plugin_state_init(&state, filename);
 
         if (err) {

@@ -17,6 +17,10 @@ Bitwig on Linux:
 
 ![Bitwig on Linux](https://raw.githubusercontent.com/soerenbnoergaard/gunshot/master/doc/screenshot_linux_bitwig.png)
 
+Reaper on Windows:
+
+![Reaper on Windows](https://raw.githubusercontent.com/soerenbnoergaard/gunshot/master/doc/screenshot_windows_reaper.png)
+
 ## Libraries and Resources
 
 My own contribution to this project is basically gluing together existing libraries. I have listed all the libraries below so you can check out the amazing work of these developers. Thanks a lot for your contributions to the open source community!
@@ -91,3 +95,5 @@ Note of progress during development.
 - The CPU usage is worse than Klangfalter. This is probably because KlangFalter does background processing of the tail section using the `TwoStageFFTConvolver`. The `Convolver` class from KlangFalter has now been translated to DPF and the performance now looks to be the same.
 
 ## Bugs and TODO
+
+On Windows, `AudioFile` cannot load a file with unicode characters in the path (ø for example). It seems to work fine on Linux.

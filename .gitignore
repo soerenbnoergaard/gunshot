@@ -8,3 +8,4 @@ src/gunshot/test/out.wav
 *.d
 *.log
 .ipynb_checkpoints
+.vscode/settings.json
