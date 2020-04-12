@@ -39,6 +39,12 @@ START_NAMESPACE_DISTRHO
 
 // -----------------------------------------------------------------------------------------------------------
 
+class Convolver : public fftconvolver::FFTConvolver
+{
+public:
+    Convolver() : fftconvolver::FFTConvolver() {}
+};
+
 /**
   Convolution plugin with impulse reponse stored as internal state.
  */
@@ -524,8 +530,8 @@ private:
     plugin_state_t state;
     String state_cache; // Serialized version of `state` which can be quickly returned in `getState()`.
 
-    fftconvolver::FFTConvolver convolver_left;
-    fftconvolver::FFTConvolver convolver_right;
+    Convolver convolver_left;
+    Convolver convolver_right;
 
     float param_dry_dB;
     float param_dry_lin;
