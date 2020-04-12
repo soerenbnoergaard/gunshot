@@ -465,9 +465,15 @@ protected:
             src_data_right.data_out[n] /= src_data_right.src_ratio;
         }
 
+        uint32_t fft_block_size_head = 1;
+        while (fft_block_size_head < getBufferSize()) {
+            fft_block_size_head *= 2;
+        }
+        uint32_t fft_block_size_tail = fft_block_size_head > 8192 ? fft_block_size_head : 8192;
+
         // Load impulse reponse into convolver
-        convolver_left_write->init(state.fft_block_size, (fftconvolver::Sample *)src_data_left.data_out, src_data_left.output_frames_gen);
-        convolver_right_write->init(state.fft_block_size, (fftconvolver::Sample *)src_data_right.data_out, src_data_right.output_frames_gen);
+        convolver_left_write->init(fft_block_size_head, (fftconvolver::Sample *)src_data_left.data_out, src_data_left.output_frames_gen);
+        convolver_right_write->init(fft_block_size_head, (fftconvolver::Sample *)src_data_right.data_out, src_data_right.output_frames_gen);
 
         free(src_data_left.data_out);
         free(src_data_right.data_out);
