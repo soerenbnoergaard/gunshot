@@ -93,7 +93,7 @@ Note of progress during development.
 - Added parameters for high-pass, low-pass, dry level, and wet level.
 - KlangFalter has adoptive head and tail block sizes. The head the buffer size or the smallest factor of two larger than this. The tail block size is the largest of 8192 and two times the head block size. This has been implemented in GunShot too.
 - The CPU usage is worse than Klangfalter. This is probably because KlangFalter does background processing of the tail section using the `TwoStageFFTConvolver`. The `Convolver` class from KlangFalter has now been translated to DPF and the performance now looks to be the same.
+- On Windows, `AudioFile` cannot load a file with unicode characters in the path (ø for example). It seems to work fine on Linux. Fixed by converting the path name from UTF-8 to ANSI/CP-1252 on Windows (at least, this works for the characters in the CP-1252 character set). It seems like it should be possible to use UTF-16 on Windows as well, but it seem to require Microsoft's C compiler and not GNU GCC.
 
 ## Bugs and TODO
 
-On Windows, `AudioFile` cannot load a file with unicode characters in the path (ø for example). It seems to work fine on Linux.
