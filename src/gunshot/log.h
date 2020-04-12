@@ -7,7 +7,7 @@ extern "C" {
 
 #include <stdint.h>
 
-#define GUNSHOT_LOG_FILE "gunshot.log"
+/* #define GUNSHOT_LOG_FILE "gunshot.log" */
 /* #define GUNSHOT_LOG_FILE "/home/soren/Desktop/gunshot.log" */
 /* #define GUNSHOT_LOG_FILE "C:/Users/Christine/Desktop/gunshot.log" */
 
