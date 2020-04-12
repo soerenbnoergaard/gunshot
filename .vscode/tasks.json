@@ -1,0 +1,40 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "Make",
+			"command": "make",
+			"args": [
+				"-C",
+				"${workspaceFolder}/src/gunshot"
+			],
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build"
+		},
+		{
+			"type": "shell",
+			"label": "Clean",
+			"command": "make",
+			"args": [
+				"-C",
+				"${workspaceFolder}/src/gunshot",
+				"clean"
+			],
+			"group": "build"
+		},
+
+		{
+			"type": "shell",
+			"label": "Copy",
+			"command": "cp",
+			"args": [
+				"${workspaceFolder}/bin/gunshot-vst.so",
+				"~/.vst/soerenbnoergaard/"
+			],
+			"group": "build"
+		},
+	]
+}

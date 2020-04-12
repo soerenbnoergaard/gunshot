@@ -15,14 +15,15 @@
  */
 
 #include "DistrhoPlugin.hpp"
-#include "extra/Thread.hpp"
 
 #include "utils.h"
 #include "log.h"
 #include "biquad.h"
 #include "plugin_state.hpp"
+#include "convolver.hpp"
 
 #include "fftconvolver/FFTConvolver.h"
+#include "fftconvolver/TwoStageFFTConvolver.h"
 #include "fftconvolver/Utilities.h"
 #include "samplerate.h"
 
@@ -38,12 +39,6 @@
 START_NAMESPACE_DISTRHO
 
 // -----------------------------------------------------------------------------------------------------------
-
-class Convolver : public fftconvolver::FFTConvolver
-{
-public:
-    Convolver() : fftconvolver::FFTConvolver() {}
-};
 
 /**
   Convolution plugin with impulse reponse stored as internal state.
@@ -468,8 +463,8 @@ protected:
         uint32_t fft_block_size_tail = fft_block_size_head > 8192 ? fft_block_size_head : 8192;
 
         // Load impulse reponse into convolver
-        convolver_left.init(fft_block_size_head, (fftconvolver::Sample *)src_data_left.data_out, src_data_left.output_frames_gen);
-        convolver_right.init(fft_block_size_head, (fftconvolver::Sample *)src_data_right.data_out, src_data_right.output_frames_gen);
+        convolver_left.init(fft_block_size_head, fft_block_size_tail, (fftconvolver::Sample *)src_data_left.data_out, src_data_left.output_frames_gen);
+        convolver_right.init(fft_block_size_head, fft_block_size_tail, (fftconvolver::Sample *)src_data_right.data_out, src_data_right.output_frames_gen);
 
         free(src_data_left.data_out);
         free(src_data_right.data_out);

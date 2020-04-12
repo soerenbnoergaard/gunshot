@@ -18,6 +18,7 @@ FILES_DSP = \
 	log.c \
 	biquad.c \
 	utils.c \
+	convolver.cpp \
 	$(wildcard ../../fftconvolver/*.cpp) \
 	../../base64/base64.c \
 	$(wildcard ../../libsamplerate/src/*.c)
