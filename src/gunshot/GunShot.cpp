@@ -481,8 +481,6 @@ protected:
     void run(const float** inputs, float** outputs, uint32_t frames) override
     {
         uint32_t n;
-        /* const float* const inL = inputs[0]; */
-        /* const float* const inR = inputs[1]; */
         float* outL = outputs[0];
         float* outR = outputs[1];
 
