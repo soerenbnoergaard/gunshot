@@ -58,7 +58,9 @@ public:
         // log_init();
         log_write("Call: GunShotPlugin()");
 #endif
-
+        inL = NULL;
+        inR = NULL;
+        bufferSizeChanged(getBufferSize());
     }
 
     ~GunShotPlugin() override
@@ -66,6 +68,8 @@ public:
         plugin_state_free(&state);
         convolver_left.reset();
         convolver_right.reset();
+        free(inL);
+        free(inR);
     }
 
 protected:
@@ -477,10 +481,15 @@ protected:
     void run(const float** inputs, float** outputs, uint32_t frames) override
     {
         uint32_t n;
-        const float* const inL = inputs[0];
-        const float* const inR = inputs[1];
+        /* const float* const inL = inputs[0]; */
+        /* const float* const inR = inputs[1]; */
         float* outL = outputs[0];
         float* outR = outputs[1];
+
+        // There seems to be an issue when reading directly from the `inputs`
+        // buffers, so instead, a local copy is created.
+        memcpy(inL, inputs[0], sizeof(float)*frames);
+        memcpy(inR, inputs[1], sizeof(float)*frames);
 
         // Real-time audio processing
         convolver_left.process((fftconvolver::Sample *)inL, (fftconvolver::Sample *)outL, frames);
@@ -518,9 +527,31 @@ protected:
         update();
     }
 
+   /**
+      Optional callback to inform the plugin about a buffer size change.@n
+      This function will only be called when the plugin is deactivated.
+      @note This value is only a hint!@n
+            Hosts might call run() with a higher or lower number of frames.
+      @see getBufferSize()
+    */
+    void bufferSizeChanged(uint32_t newBufferSize)
+    {
+        if (inL != NULL) {
+            free(inL);
+        }
+        if (inR != NULL) {
+            free(inR);
+        }
+        inL = (float *)std::malloc(sizeof(float) * newBufferSize);
+        inR = (float *)std::malloc(sizeof(float) * newBufferSize);
+    }
+
     // -------------------------------------------------------------------------------------------------------
 
 private:
+    // Temporary input buffers.
+    float *inL;
+    float *inR;
 
     plugin_state_t state;
     String state_cache; // Serialized version of `state` which can be quickly returned in `getState()`.
