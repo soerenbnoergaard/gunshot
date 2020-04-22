@@ -1,4 +1,5 @@
 #include "cp1252.hpp"
+#include <cstdlib> 
 #include <cstring>
 
 const uint8_t lut[][4] = {

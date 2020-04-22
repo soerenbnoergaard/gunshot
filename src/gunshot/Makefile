@@ -38,8 +38,8 @@ include ../../dpf/Makefile.plugins.mk
 
 # --------------------------------------------------------------
 # Set include paths and other flags
-BUILD_C_FLAGS += -I ../../dpf/distrho/src -DPACKAGE='"libsamplerate"' -DVERSION='"0.1.9"' -DCPU_CLIPS_POSITIVE=0 -DCPU_CLIPS_NEGATIVE=0 -lm
-BUILD_CXX_FLAGS += -I ../../dpf/distrho/src -I ../../ -I ../../libsamplerate/src -lm
+BUILD_C_FLAGS += -I ../../dpf/distrho/src -DPACKAGE='"libsamplerate"' -DVERSION='"0.1.9"' -DCPU_CLIPS_POSITIVE=0 -DCPU_CLIPS_NEGATIVE=0
+BUILD_CXX_FLAGS += -I ../../dpf/distrho/src -I ../../ -I ../../libsamplerate/src
 LINK_FLAGS += $(FONT_OBJECTS) -pthread -lm
 
 # --------------------------------------------------------------
